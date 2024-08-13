@@ -45,50 +45,14 @@ namespace WPFPdfViewerAI_SmartRedaction
             ToggleButton annotationToggleButton = (ToggleButton)toolbar.Template.FindName("PART_Annotations", toolbar);
             if (textSeacrchStack != null)
             {
-                // Add AI Assist button to the text search stack of the toolbar
-                aIAssistButton = new ToggleButton();
+                // Create a text block for the AI assistance button
                 TextBlock aIAssistText = new TextBlock();
                 aIAssistText.Text = "Smart Redact";
                 aIAssistText.FontSize = 14;
-                aIAssistButton.Content = aIAssistText;
-                aIAssistButton.Checked += AIAssistButton_Checked;
-                aIAssistButton.Unchecked += AIAssistButton_Unchecked;
-                aIAssistButton.Height = 32;
-                aIAssistButton.Margin = new Thickness(0, 0, 8, 0);
-                aIAssistButton.Padding = new Thickness(4);
-                // Set the style of the AI Assist button
-                if (annotationToggleButton != null)
-                {
-                    aIAssistButton.Style = annotationToggleButton.Style;
-                }
-                if (textSeacrchStack.Children  != null && textSeacrchStack.Children.Count > 0)
-                {
-                    textSeacrchStack.Children.Insert(0, aIAssistButton);
-                }
-                else
-                {
-                    textSeacrchStack.Children.Add(aIAssistButton);
-                }
-
-                //Create the linear gradient brush for the loading indicator
-                LinearGradientBrush linearGradientBrush = new LinearGradientBrush();
-                linearGradientBrush.StartPoint = new System.Windows.Point(0.5, 0);
-                linearGradientBrush.EndPoint = new System.Windows.Point(0.5, 1);
-                linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(0xFF, 0xFE, 0xFE, 0xFE), 0.027));
-                linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(0xFF, 0xFE, 0xFE, 0xFE), 0.029));
-                linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(0xFF, 0xF0, 0xF0, 0xF0), 0.498));
-                linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(0xE2, 0xE2, 0xE2, 0xE2), 0.966));
-                linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(0xE2, 0xE2, 0xE2, 0xE2), 0.968));
-
-                //Set the background and foreground for the buttons
-                scanButton.Background = linearGradientBrush;
-                scanButton.Foreground = aIAssistText.Foreground;
-                cancelButton.Background = linearGradientBrush;
-                cancelButton.Foreground = aIAssistText.Foreground;
-                applyButton.Background = linearGradientBrush;
-                applyButton.Foreground = aIAssistText.Foreground;
-                aI_Title.Background = linearGradientBrush;
-                aI_Title.Foreground = aIAssistText.Foreground;
+                //Add the AI assistance button to the text search stack panel of the PDF Viewer
+                AddAIAssistance(aIAssistText, textSeacrchStack, annotationToggleButton);
+                //Apply the background and foreground color to the buttons in the application
+                ApplyColorforButtons(aIAssistText.Foreground);
             }
 
             //Set the loading indicator size
@@ -229,20 +193,7 @@ namespace WPFPdfViewerAI_SmartRedaction
             }
 
             //Check the selected sensitive information checkboxes and disable the apply button
-            bool isAllInformationsUnselected = true;
-            for (int infoIndex = 1; infoIndex < information_Stack.Children.Count - 1; infoIndex++)
-            {
-                CheckBox information = information_Stack.Children[infoIndex] as CheckBox;
-                if (information != null && (bool)information.IsChecked)
-                {
-                    isAllInformationsUnselected = false;
-                    break;
-                }
-            }
-            if (isAllInformationsUnselected)
-            {
-                applyButton.IsEnabled = false;
-            }
+            ToggleApplyButton();
 
             CheckBox checkBox = sender as CheckBox;
             if (checkBox != null)
@@ -251,20 +202,7 @@ namespace WPFPdfViewerAI_SmartRedaction
                 if (bounds != null && bounds.Count > 0)
                 {
                     //Clear the marked region of the selected sensitive information
-                    if (redactRegions.ContainsKey(bounds.Keys.First()))
-                    {
-                        redactRegions[bounds.Keys.First()].Remove(bounds.Values.First());
-                        if (redactRegions[bounds.Keys.First()].Count == 0)
-                        {
-                            redactRegions.Remove(bounds.Keys.First());
-                            pdfViewer.PageRedactor.MarkRegions(bounds.Keys.First(), new List<RectangleF>());
-                        }
-                        else
-                        {
-                            pdfViewer.PageRedactor.MarkRegions(bounds.Keys.First(), redactRegions[bounds.Keys.First()]);
-                        }
-                        pdfViewer.PageRedactor.EnableRedactionMode = true;
-                    }
+                    RemoveMarkedRegionForRedaction(bounds);
                 }
             }
         }
@@ -287,23 +225,7 @@ namespace WPFPdfViewerAI_SmartRedaction
             }
             else
             {
-                isAllInformationsSelected = true;
-                for (int infoIndex = 1; infoIndex < information_Stack.Children.Count - 1; infoIndex++)
-                {
-                    CheckBox information = information_Stack.Children[infoIndex] as CheckBox;
-                    if (information != null && !(bool)information.IsChecked)
-                    {
-                        isAllInformationsSelected = false;
-                        break;
-                    }
-                }
-
-                if (isAllInformationsSelected && !(bool)selectAll.IsChecked)
-                {
-                    selectAll.Checked -= selectAll_Checked;
-                    selectAll.IsChecked = true;
-                    selectAll.Checked += selectAll_Checked;
-                }
+                ToggleSelectAllCheckedState();
             }
 
             CheckBox checkBox = sender as CheckBox;
@@ -313,17 +235,7 @@ namespace WPFPdfViewerAI_SmartRedaction
                 if (bounds != null && bounds.Count > 0)
                 {
                     //Mark the region of the selected sensitive information
-                    if (redactRegions.ContainsKey(bounds.Keys.First()))
-                    {
-                        redactRegions[bounds.Keys.First()].Add(bounds.Values.First());
-                    }
-                    else
-                    {
-                        redactRegions.Add(bounds.Keys.First(), new List<RectangleF> { bounds.Values.First() });
-                    }
-
-                    pdfViewer.PageRedactor.MarkRegions(bounds.Keys.First(), redactRegions[bounds.Keys.First()]);
-                    pdfViewer.PageRedactor.EnableRedactionMode = true;
+                    AddMarkedRegionForRedaction(bounds);
 
                     //Scroll to the marked region in the PDFViewer
                     if (bounds.Keys.First() <= pdfViewer.PageCount - 1 && bounds.Keys.First() >= 0)
@@ -468,15 +380,7 @@ namespace WPFPdfViewerAI_SmartRedaction
                 selectAll.Visibility = Visibility.Collapsed;
             }
 
-            //Show the extracted sensitive information checkboxes and hide the redact options checkboxes
-            option_Scroll.Visibility = Visibility.Collapsed;
-            information_Grid.Visibility = Visibility.Visible;
-            contents_Stack.Visibility = Visibility.Collapsed;
-            ResetRedactionOptions();
-
-            //Hide the visibility of the loading indicator
-            loadingIndicator.Visibility = Visibility.Collapsed;
-            loadingCanvas.Visibility = Visibility.Hidden;
+            ToggleUIVisibiltity();
         }
 
         /// <summary>
@@ -618,6 +522,165 @@ namespace WPFPdfViewerAI_SmartRedaction
             }
 
             return selectedItem;
+        }
+
+        /// <summary>
+        /// Applies the background and foreground color to the buttons
+        /// </summary>
+        /// <param name="foregroundColor"></param>
+        private void ApplyColorforButtons(System.Windows.Media.Brush foregroundColor)
+        {
+            //Create the linear gradient brush for the loading indicator
+            LinearGradientBrush linearGradientBrush = new LinearGradientBrush();
+            linearGradientBrush.StartPoint = new System.Windows.Point(0.5, 0);
+            linearGradientBrush.EndPoint = new System.Windows.Point(0.5, 1);
+            linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(0xFF, 0xFE, 0xFE, 0xFE), 0.027));
+            linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(0xFF, 0xFE, 0xFE, 0xFE), 0.029));
+            linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(0xFF, 0xF0, 0xF0, 0xF0), 0.498));
+            linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(0xE2, 0xE2, 0xE2, 0xE2), 0.966));
+            linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(0xE2, 0xE2, 0xE2, 0xE2), 0.968));
+
+            //Set the background and foreground for the buttons
+            scanButton.Background = linearGradientBrush;
+            scanButton.Foreground = foregroundColor;
+            cancelButton.Background = linearGradientBrush;
+            cancelButton.Foreground = foregroundColor;
+            applyButton.Background = linearGradientBrush;
+            applyButton.Foreground = foregroundColor;
+            aI_Title.Background = linearGradientBrush;
+            aI_Title.Foreground = foregroundColor;
+        }
+
+        /// <summary>
+        /// Add the AI assistance button to the text search stack panel of the PDF Viewer
+        /// </summary>
+        /// <param name="aiAssistText">Text block</param>
+        /// <param name="textSeacrchStack">Text search stack panel</param>
+        /// <param name="annotationToggleButton">Annotation toggle button</param>
+        private void AddAIAssistance(TextBlock aiAssistText, StackPanel textSeacrchStack, ToggleButton annotationToggleButton)
+        {
+            aIAssistButton = new ToggleButton();
+            aIAssistButton.Content = aiAssistText;
+            aIAssistButton.Checked += AIAssistButton_Checked;
+            aIAssistButton.Unchecked += AIAssistButton_Unchecked;
+            aIAssistButton.Height = 32;
+            aIAssistButton.Margin = new Thickness(0, 0, 8, 0);
+            aIAssistButton.Padding = new Thickness(4);
+            // Set the style of the AI Assist button
+            if (annotationToggleButton != null)
+            {
+                aIAssistButton.Style = annotationToggleButton.Style;
+            }
+            if (textSeacrchStack.Children != null && textSeacrchStack.Children.Count > 0)
+            {
+                textSeacrchStack.Children.Insert(0, aIAssistButton);
+            }
+            else
+            {
+                textSeacrchStack.Children.Add(aIAssistButton);
+            }
+        }
+
+        /// <summary>
+        /// Toggle the apply button based on the selected sensitive information
+        /// </summary>
+        private void ToggleApplyButton()
+        {
+            bool isAllInformationsUnselected = true;
+            for (int infoIndex = 1; infoIndex < information_Stack.Children.Count - 1; infoIndex++)
+            {
+                CheckBox information = information_Stack.Children[infoIndex] as CheckBox;
+                if (information != null && (bool)information.IsChecked)
+                {
+                    isAllInformationsUnselected = false;
+                    break;
+                }
+            }
+            if (isAllInformationsUnselected)
+            {
+                applyButton.IsEnabled = false;
+            }
+        }
+
+        /// <summary>
+        /// Toggle the visibility of the UI elements
+        /// </summary>
+        private void ToggleUIVisibiltity()
+        {
+            //Show the extracted sensitive information checkboxes and hide the redact options checkboxes
+            option_Scroll.Visibility = Visibility.Collapsed;
+            information_Grid.Visibility = Visibility.Visible;
+            contents_Stack.Visibility = Visibility.Collapsed;
+            ResetRedactionOptions();
+
+            //Hide the visibility of the loading indicator
+            loadingIndicator.Visibility = Visibility.Collapsed;
+            loadingCanvas.Visibility = Visibility.Hidden;
+        }
+
+        /// <summary>
+        /// Check whether all the extracted sensitive information checkboxes are selected
+        /// </summary>
+        private void ToggleSelectAllCheckedState()
+        {
+            isAllInformationsSelected = true;
+            for (int infoIndex = 1; infoIndex < information_Stack.Children.Count - 1; infoIndex++)
+            {
+                CheckBox information = information_Stack.Children[infoIndex] as CheckBox;
+                if (information != null && !(bool)information.IsChecked)
+                {
+                    isAllInformationsSelected = false;
+                    break;
+                }
+            }
+
+            if (isAllInformationsSelected && !(bool)selectAll.IsChecked)
+            {
+                selectAll.Checked -= selectAll_Checked;
+                selectAll.IsChecked = true;
+                selectAll.Checked += selectAll_Checked;
+            }
+        }
+
+        /// <summary>
+        /// Add the marked region to redact in the PDFViewer
+        /// </summary>
+        /// <param name="bounds">Region to be added</param>
+        private void AddMarkedRegionForRedaction(Dictionary<int, RectangleF> bounds)
+        {
+            if (redactRegions.ContainsKey(bounds.Keys.First()))
+            {
+                redactRegions[bounds.Keys.First()].Add(bounds.Values.First());
+            }
+            else
+            {
+                redactRegions.Add(bounds.Keys.First(), new List<RectangleF> { bounds.Values.First() });
+            }
+
+            pdfViewer.PageRedactor.MarkRegions(bounds.Keys.First(), redactRegions[bounds.Keys.First()]);
+            pdfViewer.PageRedactor.EnableRedactionMode = true;
+        }
+
+        /// <summary>
+        /// Remove the marked region to redact in the PDFViewer
+        /// </summary>
+        /// <param name="bounds">Region to be removed</param>
+        private void RemoveMarkedRegionForRedaction(Dictionary<int, RectangleF> bounds)
+        {
+            if (redactRegions.ContainsKey(bounds.Keys.First()))
+            {
+                redactRegions[bounds.Keys.First()].Remove(bounds.Values.First());
+                if (redactRegions[bounds.Keys.First()].Count == 0)
+                {
+                    redactRegions.Remove(bounds.Keys.First());
+                    pdfViewer.PageRedactor.MarkRegions(bounds.Keys.First(), new List<RectangleF>());
+                }
+                else
+                {
+                    pdfViewer.PageRedactor.MarkRegions(bounds.Keys.First(), redactRegions[bounds.Keys.First()]);
+                }
+                pdfViewer.PageRedactor.EnableRedactionMode = true;
+            }
         }
 
         /// <summary>
