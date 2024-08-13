@@ -166,15 +166,9 @@ namespace WPFPdfViewer_SmartFill
                         return reader.ReadToEnd();
                     }
                 }
-                else
-                {
-                    return "";
-                }
             }
-            else
-            {
-                return "";
-            }
+
+            return "";
         }
 
         /// <summary>
