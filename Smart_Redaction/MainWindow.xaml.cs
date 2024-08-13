@@ -39,21 +39,11 @@ namespace WPFPdfViewerAI_SmartRedaction
         /// <param name="e">Event arguments</param>
         private void PdfViewer_Loaded(object sender, RoutedEventArgs e)
         {
-            // Get the text search stack panel from the toolbar of the PDF Viewer
+            // Get the toolbar instance of the PDF Viewer
             DocumentToolbar toolbar = (DocumentToolbar)pdfViewer.Template.FindName("PART_Toolbar", pdfViewer);
-            StackPanel textSeacrchStack = (StackPanel)toolbar.Template.FindName("PART_TextSearchStack", toolbar);
-            ToggleButton annotationToggleButton = (ToggleButton)toolbar.Template.FindName("PART_Annotations", toolbar);
-            if (textSeacrchStack != null)
-            {
-                // Create a text block for the AI assistance button
-                TextBlock aIAssistText = new TextBlock();
-                aIAssistText.Text = "Smart Redact";
-                aIAssistText.FontSize = 14;
-                //Add the AI assistance button to the text search stack panel of the PDF Viewer
-                AddAIAssistance(aIAssistText, textSeacrchStack, annotationToggleButton);
-                //Apply the background and foreground color to the buttons in the application
-                ApplyColorforButtons(aIAssistText.Foreground);
-            }
+
+            //Add the AI assistance button to the text search stack panel of the PDF Viewer
+            AddAIAssistanceButton(toolbar);
 
             //Set the loading indicator size
             loadingIndicator.Height = this.Height;
@@ -375,11 +365,7 @@ namespace WPFPdfViewerAI_SmartRedaction
                 AddInformationToStack(sensitiveInformations);
             }
 
-            if (information_Stack.Children.Count <= 2)
-            {
-                selectAll.Visibility = Visibility.Collapsed;
-            }
-
+            //Toggle the visibility of the UI elements after the extraction of the sensitive information
             ToggleUIVisibiltity();
         }
 
@@ -554,13 +540,19 @@ namespace WPFPdfViewerAI_SmartRedaction
         /// <summary>
         /// Add the AI assistance button to the text search stack panel of the PDF Viewer
         /// </summary>
-        /// <param name="aiAssistText">Text block</param>
-        /// <param name="textSeacrchStack">Text search stack panel</param>
-        /// <param name="annotationToggleButton">Annotation toggle button</param>
-        private void AddAIAssistance(TextBlock aiAssistText, StackPanel textSeacrchStack, ToggleButton annotationToggleButton)
+        /// <param name="toolbar">oolbar of the pdfViewer</param>
+        private void AddAIAssistanceButton(DocumentToolbar toolbar)
         {
+            //Get the text search stack panel and the annotations toggle button from the toolbar
+            StackPanel textSeacrchStack = (StackPanel)toolbar.Template.FindName("PART_TextSearchStack", toolbar);
+            ToggleButton annotationToggleButton = (ToggleButton)toolbar.Template.FindName("PART_Annotations", toolbar);
+            // Create a text block for the AI assistance button
+            TextBlock aIAssistText = new TextBlock();
+            aIAssistText.Text = "Smart Redact";
+            aIAssistText.FontSize = 14;
+            // Create a toggle button for the AI assistance button
             aIAssistButton = new ToggleButton();
-            aIAssistButton.Content = aiAssistText;
+            aIAssistButton.Content = aIAssistText;
             aIAssistButton.Checked += AIAssistButton_Checked;
             aIAssistButton.Unchecked += AIAssistButton_Unchecked;
             aIAssistButton.Height = 32;
@@ -571,6 +563,7 @@ namespace WPFPdfViewerAI_SmartRedaction
             {
                 aIAssistButton.Style = annotationToggleButton.Style;
             }
+            // Add the AI assistance button to the text search stack panel
             if (textSeacrchStack.Children != null && textSeacrchStack.Children.Count > 0)
             {
                 textSeacrchStack.Children.Insert(0, aIAssistButton);
@@ -579,6 +572,9 @@ namespace WPFPdfViewerAI_SmartRedaction
             {
                 textSeacrchStack.Children.Add(aIAssistButton);
             }
+
+            //Apply the background and foreground color to the buttons in the application
+            ApplyColorforButtons(aIAssistText.Foreground);
         }
 
         /// <summary>
@@ -607,6 +603,12 @@ namespace WPFPdfViewerAI_SmartRedaction
         /// </summary>
         private void ToggleUIVisibiltity()
         {
+            //Hide the extracted sensitive information checkboxes when all the sensitive information is redacted
+            if (information_Stack.Children.Count <= 2)
+            {
+                selectAll.Visibility = Visibility.Collapsed;
+            }
+
             //Show the extracted sensitive information checkboxes and hide the redact options checkboxes
             option_Scroll.Visibility = Visibility.Collapsed;
             information_Grid.Visibility = Visibility.Visible;
