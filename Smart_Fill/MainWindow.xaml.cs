@@ -2,18 +2,10 @@
 using Syncfusion.Pdf.Parsing;
 using Syncfusion.Windows.PdfViewer;
 using System.IO;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-
 namespace WPFPdfViewer_SmartFill
 {
     /// <summary>
@@ -272,6 +264,7 @@ namespace WPFPdfViewer_SmartFill
             // Get the text search stack panel and annotation button from the toolbar
             StackPanel textSeacrchStack = (StackPanel)toolbar.Template.FindName("PART_TextSearchStack", toolbar);
             ToggleButton annotationToggleButton = (ToggleButton)toolbar.Template.FindName("PART_Annotations", toolbar);
+            Brush background = toolbar.Background;
             //Create a new toggle button for AI Assist
             aIAssistButton = new ToggleButton();
             TextBlock aIAssistText = new TextBlock();
@@ -298,29 +291,19 @@ namespace WPFPdfViewer_SmartFill
                 textSeacrchStack.Children.Add(aIAssistButton);
             }
 
-            ApplyColorToButtons(aIAssistText.Foreground);
+            ApplyColorToButtons(aIAssistText.Foreground, background);
         }
 
         /// <summary>
         /// Apply the color to the buttons in the toolbar.
         /// </summary>
         /// <param name="foregroundBrush">Fore ground color</param>
-        private void ApplyColorToButtons(Brush foregroundBrush)
+        private void ApplyColorToButtons(Brush foregroundBrush, Brush backgroundBrush)
         {
-            //Create the linear gradient brush for the loading indicator
-            LinearGradientBrush linearGradientBrush = new LinearGradientBrush();
-            linearGradientBrush.StartPoint = new System.Windows.Point(0.5, 0);
-            linearGradientBrush.EndPoint = new System.Windows.Point(0.5, 1);
-            linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(0xFF, 0xFE, 0xFE, 0xFE), 0.027));
-            linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(0xFF, 0xFE, 0xFE, 0xFE), 0.029));
-            linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(0xFF, 0xF0, 0xF0, 0xF0), 0.498));
-            linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(0xE2, 0xE2, 0xE2, 0xE2), 0.966));
-            linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(0xE2, 0xE2, 0xE2, 0xE2), 0.968));
-
             //Set the background and foreground for the buttons
-            aI_Title.Background = linearGradientBrush;
+            aI_Title.Background = backgroundBrush;
             aI_Title.Foreground = foregroundBrush;
-            smartFillButton.Background = linearGradientBrush;
+            smartFillButton.Background = backgroundBrush;
             smartFillButton.Foreground = foregroundBrush;
         }
 
