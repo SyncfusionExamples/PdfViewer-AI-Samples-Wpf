@@ -5,7 +5,6 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Media;
 
 namespace WPFPdfViewerAI_SmartRedaction
 {
@@ -514,26 +513,16 @@ namespace WPFPdfViewerAI_SmartRedaction
         /// Applies the background and foreground color to the buttons
         /// </summary>
         /// <param name="foregroundColor"></param>
-        private void ApplyColorforButtons(System.Windows.Media.Brush foregroundColor)
+        private void ApplyColorforButtons(System.Windows.Media.Brush foregroundColor, System.Windows.Media.Brush backgroundColor)
         {
-            //Create the linear gradient brush for the loading indicator
-            LinearGradientBrush linearGradientBrush = new LinearGradientBrush();
-            linearGradientBrush.StartPoint = new System.Windows.Point(0.5, 0);
-            linearGradientBrush.EndPoint = new System.Windows.Point(0.5, 1);
-            linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(0xFF, 0xFE, 0xFE, 0xFE), 0.027));
-            linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(0xFF, 0xFE, 0xFE, 0xFE), 0.029));
-            linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(0xFF, 0xF0, 0xF0, 0xF0), 0.498));
-            linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(0xE2, 0xE2, 0xE2, 0xE2), 0.966));
-            linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(0xE2, 0xE2, 0xE2, 0xE2), 0.968));
-
             //Set the background and foreground for the buttons
-            scanButton.Background = linearGradientBrush;
+            scanButton.Background = backgroundColor;
             scanButton.Foreground = foregroundColor;
-            cancelButton.Background = linearGradientBrush;
+            cancelButton.Background = backgroundColor;
             cancelButton.Foreground = foregroundColor;
-            applyButton.Background = linearGradientBrush;
+            applyButton.Background = backgroundColor;
             applyButton.Foreground = foregroundColor;
-            aI_Title.Background = linearGradientBrush;
+            aI_Title.Background = backgroundColor;
             aI_Title.Foreground = foregroundColor;
         }
 
@@ -546,6 +535,7 @@ namespace WPFPdfViewerAI_SmartRedaction
             //Get the text search stack panel and the annotations toggle button from the toolbar
             StackPanel textSeacrchStack = (StackPanel)toolbar.Template.FindName("PART_TextSearchStack", toolbar);
             ToggleButton annotationToggleButton = (ToggleButton)toolbar.Template.FindName("PART_Annotations", toolbar);
+            System.Windows.Media.Brush background = toolbar.Background;
             // Create a text block for the AI assistance button
             TextBlock aIAssistText = new TextBlock();
             aIAssistText.Text = "Smart Redact";
@@ -574,7 +564,7 @@ namespace WPFPdfViewerAI_SmartRedaction
             }
 
             //Apply the background and foreground color to the buttons in the application
-            ApplyColorforButtons(aIAssistText.Foreground);
+            ApplyColorforButtons(aIAssistText.Foreground, background);
         }
 
         /// <summary>

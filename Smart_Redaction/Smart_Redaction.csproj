@@ -13,6 +13,8 @@
     <PackageReference Include="Syncfusion.PdfViewer.WPF" Version="26.2.8" />
     <PackageReference Include="Syncfusion.SfBusyIndicator.WPF" Version="26.2.8" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.7" />
+    <PackageReference Include="Syncfusion.SfSkinManager.WPF" Version="*" />
+    <PackageReference Include="Syncfusion.Themes.Windows11Light.WPF" Version="*" />
   </ItemGroup>
 
 </Project>
