@@ -26,7 +26,7 @@
             <TextBlock x:Name="aI_Title" Grid.Row="0" FontSize="14" Padding="6,12,0,0" Text="Smart Form Filling" Width="250" HorizontalAlignment="Left"/>
             <StackPanel x:Name="smartFillStack" Orientation="Vertical" Grid.Row="1">
                 <TextBlock x:Name="header_text" TextWrapping="Wrap" FontWeight="Bold" FontSize="12" Text="Choose a preset below" Margin="10,5" HorizontalAlignment="Left" Width="210"/>
-                <ComboBox x:Name="userDetailsComboBox" Margin="10" SelectionChanged="userDetailsComboBox_SelectionChanged">
+                <ComboBox x:Name="userDetailsComboBox" Margin="10" Height="25" SelectionChanged="userDetailsComboBox_SelectionChanged">
                     <ComboBoxItem Content="User Detail - 1"/>
                     <ComboBoxItem Content="User Detail - 2"/>
                     <ComboBoxItem Content="User Detail - 3"/>

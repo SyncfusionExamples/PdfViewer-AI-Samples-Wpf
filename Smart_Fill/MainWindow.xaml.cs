@@ -264,7 +264,6 @@ namespace WPFPdfViewer_SmartFill
             // Get the text search stack panel and annotation button from the toolbar
             StackPanel textSeacrchStack = (StackPanel)toolbar.Template.FindName("PART_TextSearchStack", toolbar);
             ToggleButton annotationToggleButton = (ToggleButton)toolbar.Template.FindName("PART_Annotations", toolbar);
-            Brush background = toolbar.Background;
             //Create a new toggle button for AI Assist
             aIAssistButton = new ToggleButton();
             TextBlock aIAssistText = new TextBlock();
@@ -291,19 +290,65 @@ namespace WPFPdfViewer_SmartFill
                 textSeacrchStack.Children.Add(aIAssistButton);
             }
 
-            ApplyColorToButtons(aIAssistText.Foreground, background);
+            // Apply the color to the buttons in the toolbar
+            ApplyColorToButtons(aIAssistText.Foreground, toolbar);
+        }
+
+        /// <summary>
+        /// Method to find the visual child of the parent element.
+        /// </summary>
+        /// <typeparam name="T">Type of the child</typeparam>
+        /// <param name="parent">Parent element</param>
+        /// <returns>Returns the specified type of child</returns>
+        private T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            if (parent != null && VisualTreeHelper.GetChildrenCount(parent) > 0)
+            {
+                // Traverse the visual tree to find the first child of the specified type
+                for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+                {
+                    var child = VisualTreeHelper.GetChild(parent, i);
+                    // Check if the child is of the specified type
+                    if (child is T tChild)
+                    {
+                        return tChild;
+                    }
+
+                    // Recursively search the child elements
+                    var result = FindVisualChild<T>(child);
+                    if (result != null)
+                    {
+                        return result;
+                    }
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
         /// Apply the color to the buttons in the toolbar.
         /// </summary>
         /// <param name="foregroundBrush">Fore ground color</param>
-        private void ApplyColorToButtons(Brush foregroundBrush, Brush backgroundBrush)
+        private void ApplyColorToButtons(Brush foregroundBrush, DocumentToolbar toolbar)
         {
+            // Retrieve the root element of the template
+            var rootElement = VisualTreeHelper.GetChild(toolbar, 0) as FrameworkElement;
+            Brush background = Brushes.Transparent;
+            if (rootElement != null)
+            {
+                // Traverse the visual tree to find the first Border
+                var border = FindVisualChild<Border>(rootElement);
+                if (border != null && border.Name != "Part_AnnotationToolbar")
+                {
+                    background = border.Background;
+                }
+            }
+
             //Set the background and foreground for the buttons
-            aI_Title.Background = backgroundBrush;
+            aI_Title.Background = background;
             aI_Title.Foreground = foregroundBrush;
-            smartFillButton.Background = backgroundBrush;
+            smartFillButton.Background = background;
             smartFillButton.Foreground = foregroundBrush;
         }
 

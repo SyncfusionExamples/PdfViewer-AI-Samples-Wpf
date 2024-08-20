@@ -5,6 +5,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Media;
 
 namespace WPFPdfViewerAI_SmartRedaction
 {
@@ -513,16 +514,29 @@ namespace WPFPdfViewerAI_SmartRedaction
         /// Applies the background and foreground color to the buttons
         /// </summary>
         /// <param name="foregroundColor"></param>
-        private void ApplyColorforButtons(System.Windows.Media.Brush foregroundColor, System.Windows.Media.Brush backgroundColor)
+        private void ApplyColorforButtons(System.Windows.Media.Brush foregroundColor, DocumentToolbar toolbar)
         {
+            // Retrieve the root element of the template
+            var rootElement = VisualTreeHelper.GetChild(toolbar, 0) as FrameworkElement;
+            System.Windows.Media.Brush background = System.Windows.Media.Brushes.Transparent;
+            if (rootElement != null)
+            {
+                // Traverse the visual tree to find the first Border
+                var border = FindVisualChild<Border>(rootElement);
+                if (border != null && border.Name != "Part_AnnotationToolbar")
+                {
+                    background = border.Background;
+                }
+            }
+
             //Set the background and foreground for the buttons
-            scanButton.Background = backgroundColor;
+            scanButton.Background = background;
             scanButton.Foreground = foregroundColor;
-            cancelButton.Background = backgroundColor;
+            cancelButton.Background = background;
             cancelButton.Foreground = foregroundColor;
-            applyButton.Background = backgroundColor;
+            applyButton.Background = background;
             applyButton.Foreground = foregroundColor;
-            aI_Title.Background = backgroundColor;
+            aI_Title.Background = background;
             aI_Title.Foreground = foregroundColor;
         }
 
@@ -535,7 +549,6 @@ namespace WPFPdfViewerAI_SmartRedaction
             //Get the text search stack panel and the annotations toggle button from the toolbar
             StackPanel textSeacrchStack = (StackPanel)toolbar.Template.FindName("PART_TextSearchStack", toolbar);
             ToggleButton annotationToggleButton = (ToggleButton)toolbar.Template.FindName("PART_Annotations", toolbar);
-            System.Windows.Media.Brush background = toolbar.Background;
             // Create a text block for the AI assistance button
             TextBlock aIAssistText = new TextBlock();
             aIAssistText.Text = "Smart Redact";
@@ -564,7 +577,39 @@ namespace WPFPdfViewerAI_SmartRedaction
             }
 
             //Apply the background and foreground color to the buttons in the application
-            ApplyColorforButtons(aIAssistText.Foreground, background);
+            ApplyColorforButtons(aIAssistText.Foreground, toolbar);
+        }
+
+        /// <summary>
+        /// Method to find the visual child of the parent element.
+        /// </summary>
+        /// <typeparam name="T">Type of the child</typeparam>
+        /// <param name="parent">Parent element</param>
+        /// <returns>Returns the specified type of child</returns>
+        private T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            if (parent != null && VisualTreeHelper.GetChildrenCount(parent) > 0)
+            {
+                // Traverse the visual tree to find the first child of the specified type
+                for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+                {
+                    var child = VisualTreeHelper.GetChild(parent, i);
+                    // Check if the child is of the specified type
+                    if (child is T tChild)
+                    {
+                        return tChild;
+                    }
+
+                    // Recursively search the child elements
+                    var result = FindVisualChild<T>(child);
+                    if (result != null)
+                    {
+                        return result;
+                    }
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
