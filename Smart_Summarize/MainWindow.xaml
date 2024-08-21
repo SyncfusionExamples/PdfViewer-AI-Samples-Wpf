@@ -5,20 +5,43 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Smart_Summarize"
         xmlns:PdfViewer="clr-namespace:Syncfusion.Windows.PdfViewer;assembly=Syncfusion.PdfViewer.WPF"
+        xmlns:Notification="clr-namespace:Syncfusion.Windows.Controls.Notification;assembly=Syncfusion.SfBusyIndicator.WPF"
+        xmlns:syncfusionskin ="clr-namespace:Syncfusion.SfSkinManager;assembly=Syncfusion.SfSkinManager.WPF"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="800" WindowState="Maximized"
+        syncfusionskin:SfSkinManager.Theme="{syncfusionskin:SkinManagerExtension ThemeName=Windows11Light}">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="7*"/>
+            <ColumnDefinition Width="auto"/>
         </Grid.ColumnDefinitions>
         <PdfViewer:PdfViewerControl x:Name="pdfViewer" Grid.Column="0" Loaded="pdfViewer_Loaded" DocumentLoaded="pdfViewer_DocumentLoaded"/>
-        <Grid x:Name="smartFillGrid" Grid.Column="1" Visibility="Collapsed">
+        <Grid x:Name="summarizeGrid" Grid.Column="1" Visibility="Collapsed">
             <Grid.RowDefinitions>
                 <RowDefinition Height="40"/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
-            <TextBlock x:Name="aI_Title" Grid.Row="0" FontSize="14" Padding="6,12,0,0" Text="AI Summarizer with Q/A" Width="250" HorizontalAlignment="Left"/>
+            <TextBlock x:Name="aI_Title" Grid.Row="0" FontSize="14" Padding="6,12,0,0" Text="AI Assist" Width="350" HorizontalAlignment="Left"/>
+            <Grid x:Name="chatGrid" Grid.Row="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <ScrollViewer Grid.Row="0" x:Name="ChatViewer" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" >
+                    <StackPanel x:Name="chatStack" Orientation="Vertical" >
+                    </StackPanel>
+                </ScrollViewer>
+                <StackPanel x:Name="inputStack" Grid.Row="1" Orientation="Horizontal">
+                    <TextBox x:Name="inputText" Width="290" MinHeight="40" VerticalContentAlignment="Top" AcceptsReturn="True" MaxHeight="100" Margin="5,10" TextWrapping="Wrap" GotFocus="inputText_GotFocus" LostFocus="inputText_LostFocus"/>
+                    <Button x:Name="sendButton" Margin="5,10" Height="25" Width="40" VerticalAlignment="Bottom" Click="sendButton_Click">
+                        <Button.Content>
+                             <Image x:Name="sendIcon"/>
+                        </Button.Content>
+                    </Button>
+                </StackPanel>
+            </Grid>
+            <Canvas x:Name="loadingCanvas" Grid.Row="1" Background="White" Opacity="0.5" Visibility="Collapsed"/>
+            <Notification:SfBusyIndicator x:Name="loadingIndicator" Grid.Row="1" Visibility="Collapsed" IsBusy="True" AnimationType="DotCircle" ViewboxHeight="75" ViewboxWidth="150"/>
         </Grid>
     </Grid>
 </Window>
