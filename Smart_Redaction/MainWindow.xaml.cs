@@ -269,6 +269,11 @@ namespace WPFPdfViewerAI_SmartRedaction
         /// <param name="e">Event arguments</param>
         private void AIAssistButton_Unchecked(object sender, RoutedEventArgs e)
         {
+            ToggleButton toggleButton = sender as ToggleButton;
+            if (toggleButton != null)
+            {
+                (toggleButton.Content as TextBlock).SetResourceReference(ToggleButton.ForegroundProperty, "SecondaryForeground");
+            }
             CollapseAIAssistance();
         }
 
@@ -279,6 +284,11 @@ namespace WPFPdfViewerAI_SmartRedaction
         /// <param name="e">Event arguments</param>
         private void AIAssistButton_Checked(object sender, RoutedEventArgs e)
         {
+            ToggleButton toggleButton = sender as ToggleButton;
+            if (toggleButton != null)
+            {
+                (toggleButton.Content as TextBlock).SetResourceReference(ToggleButton.ForegroundProperty, "PrimaryForeground");
+            }
             // Show the AI assistance grid
             aiGrid.Visibility = Visibility.Visible;
         }
@@ -397,7 +407,7 @@ namespace WPFPdfViewerAI_SmartRedaction
                 //Apply the redaction to the marked regions in the PDF document
                 pdfViewer.PageRedactor.ApplyRedaction();
                 ClearMarkedRegionForRedaction();
-                for (int infoIndex = information_Stack.Children.Count - 2; infoIndex >= 0; infoIndex--)
+                for (int infoIndex = information_Stack.Children.Count - 2; infoIndex >= 1; infoIndex--)
                 {
                     CheckBox checkBox = information_Stack.Children[infoIndex] as CheckBox;
                     if (checkBox != null && (bool)checkBox.IsChecked)
@@ -558,14 +568,12 @@ namespace WPFPdfViewerAI_SmartRedaction
             aIAssistButton.Content = aIAssistText;
             aIAssistButton.Checked += AIAssistButton_Checked;
             aIAssistButton.Unchecked += AIAssistButton_Unchecked;
-            aIAssistButton.Height = 32;
+            aIAssistButton.VerticalAlignment = VerticalAlignment.Center;
             aIAssistButton.Margin = new Thickness(0, 0, 8, 0);
             aIAssistButton.Padding = new Thickness(4);
             // Set the style of the AI Assist button
-            if (annotationToggleButton != null)
-            {
-                aIAssistButton.Style = annotationToggleButton.Style;
-            }
+            aIAssistButton.SetResourceReference(ToggleButton.StyleProperty, "WPFToggleButtonStyle");
+            aIAssistText.SetResourceReference(ToggleButton.ForegroundProperty, "SecondaryForeground");
             // Add the AI assistance button to the text search stack panel
             if (textSeacrchStack.Children != null && textSeacrchStack.Children.Count > 0)
             {
@@ -577,7 +585,7 @@ namespace WPFPdfViewerAI_SmartRedaction
             }
 
             //Apply the background and foreground color to the buttons in the application
-            ApplyColorforButtons(aIAssistText.Foreground, toolbar);
+            ApplyColorforButtons(annotationToggleButton.Foreground, toolbar);
         }
 
         /// <summary>

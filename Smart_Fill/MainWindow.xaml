@@ -12,28 +12,65 @@
         syncfusionskin:SfSkinManager.Theme="{syncfusionskin:SkinManagerExtension ThemeName=Windows11Light}">
     <Grid x:Name="homeGrid">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="7.5*"/>
+            <ColumnDefinition Width="2.5*"/>
         </Grid.ColumnDefinitions>
-        <PdfViewer:PdfViewerControl x:Name="pdfViewer" Grid.Column="0" Loaded="pdfViewer_Loaded" DocumentLoaded="pdfViewer_DocumentLoaded"/>
+        <PdfViewer:PdfViewerControl x:Name="pdfViewer" Grid.Column="0" Loaded="pdfViewer_Loaded"/>
         <Canvas x:Name="loadingCanvas" Background="White" Opacity="0.5" Visibility="Collapsed"/>
         <Notification:SfBusyIndicator x:Name="loadingIndicator" Grid.Row="1" Visibility="Collapsed" IsBusy="True" AnimationType="DotCircle" ViewboxHeight="100" ViewboxWidth="200" Header="Loading..."/>
-        <Grid x:Name="smartFillGrid" Grid.Column="1" Visibility="Collapsed">
+        <Grid x:Name="smartFillGrid" Grid.Column="1" Visibility="Visible">
             <Grid.RowDefinitions>
-                <RowDefinition Height="40"/>
+                <RowDefinition Height="41"/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
-            <TextBlock x:Name="aI_Title" Grid.Row="0" FontSize="14" Padding="6,12,0,0" Text="Smart Form Filling" Width="250" HorizontalAlignment="Left"/>
-            <StackPanel x:Name="smartFillStack" Orientation="Vertical" Grid.Row="1">
-                <TextBlock x:Name="header_text" TextWrapping="Wrap" FontWeight="Bold" FontSize="12" Text="Choose a preset below" Margin="10,5" HorizontalAlignment="Left" Width="210"/>
-                <ComboBox x:Name="userDetailsComboBox" Margin="10" Height="25" SelectionChanged="userDetailsComboBox_SelectionChanged">
-                    <ComboBoxItem Content="User Detail - 1"/>
-                    <ComboBoxItem Content="User Detail - 2"/>
-                    <ComboBoxItem Content="User Detail - 3"/>
-                </ComboBox>
-                <TextBox x:Name="userDetailsTextBox" Margin="10" TextWrapping="Wrap" Width="230"/>
-                <Button x:Name="smartFillButton" Content="Smart Fill" Width="70" Height="30" Margin="10" HorizontalAlignment="Right" Click="smartFillButton_Click"/>
-            </StackPanel>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Border x:Name="separator" Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" VerticalAlignment="Stretch" BorderThickness="1" HorizontalAlignment="Stretch"/>
+            <Label x:Name="aI_Title" Grid.Row="0" Grid.Column="1" FontSize="14" Padding="6,12,0,0" Content="Select text to be copied" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+            <ScrollViewer Grid.Row="1" Grid.Column="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                <Grid x:Name="contentGrid">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Border x:Name="userData1" Grid.Row="0" MinHeight="50" MaxHeight="200" HorizontalAlignment="Stretch" Margin="5" BorderThickness="2" MouseEnter="Border_MouseEnter" MouseLeave="Border_MouseLeave">
+                        <Grid>
+                            <TextBlock x:Name="userDataText1" TextWrapping="Wrap" Padding="10,10,20,10">
+                                Hi, this is John. You can contact me at john123@gmail.com. I am male, born on February 20, 2005. I want to subscribe to a newspaper and learn courses, specifically a Machine Learning course. I am from Alaska.
+                            </TextBlock>
+                            <Button x:Name="copyUserDataButton1" Visibility="Collapsed" Height="25"  HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,5,5,0" Padding="5,0" Click="CopyButton_Click">
+                                <Path Data="M4 1H10C10.5523 1 11 1.44772 11 2V12C11 12.5523 10.5523 13 10 13H4C3.44772 13 3 12.5523 3 12V2C3 1.44772 3.44772 1 4 1ZM2 2C2 0.89543 2.89543 0 4 0H10C11.1046 0 12 0.895431 12 2V12C12 13.1046 11.1046 14 10 14H4C2.89543 14 2 13.1046 2 12V2ZM4 15H8H9.73244C9.38663 15.5978 8.74028 16 8 16H3.5C1.567 16 0 14.433 0 12.5V4C0 3.25972 0.402199 2.61337 1 2.26756V4V12V12.5C1 13.8807 2.11929 15 3.5 15H4Z"
+                                      Width="12" Height="16" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"/>
+                            </Button>
+                        </Grid>
+                    </Border>
+                    <Border x:Name="userData2" Grid.Row="1" MinHeight="50" MaxHeight="200" HorizontalAlignment="Stretch" Margin="5" BorderThickness="2" MouseEnter="Border_MouseEnter" MouseLeave="Border_MouseLeave">
+                        <Grid>
+                            <TextBlock x:Name="userDataText2" TextWrapping="Wrap" Padding="10,10,20,10">
+                                S David here. You can reach me at David123@gmail.com. I am male, born on March 15, 2003. I would like to subscribe to a newspaper and am interested in taking a Digital Marketing course. I am from New York.
+                            </TextBlock>
+                            <Button x:Name="copyUserDataButton2" Visibility="Collapsed" Height="25"  HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,5,5,0" Padding="5,0" Click="CopyButton_Click">
+                                <Path Data="M4 1H10C10.5523 1 11 1.44772 11 2V12C11 12.5523 10.5523 13 10 13H4C3.44772 13 3 12.5523 3 12V2C3 1.44772 3.44772 1 4 1ZM2 2C2 0.89543 2.89543 0 4 0H10C11.1046 0 12 0.895431 12 2V12C12 13.1046 11.1046 14 10 14H4C2.89543 14 2 13.1046 2 12V2ZM4 15H8H9.73244C9.38663 15.5978 8.74028 16 8 16H3.5C1.567 16 0 14.433 0 12.5V4C0 3.25972 0.402199 2.61337 1 2.26756V4V12V12.5C1 13.8807 2.11929 15 3.5 15H4Z"
+                                      Width="12" Height="16" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"/>
+                            </Button>
+                        </Grid>
+                    </Border>
+                    <Border x:Name="userData3" Grid.Row="2" MinHeight="50" MaxHeight="200" HorizontalAlignment="Stretch" Margin="5" BorderThickness="2" MouseEnter="Border_MouseEnter" MouseLeave="Border_MouseLeave">
+                        <Grid>
+                            <TextBlock x:Name="userDataText3" TextWrapping="Wrap" Padding="10,10,20,10">
+                                Hi, this is Alice. You can contact me at alice456@gmail.com. I am female, born on July 15, 1998. I want to unsubscribe from a newspaper and learn courses, specifically a Cloud Computing course. I am from Texas.
+                            </TextBlock>
+                            <Button x:Name="copyUserDataButton3" Visibility="Collapsed" Height="25"  HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,5,5,0" Padding="5,0" Click="CopyButton_Click">
+                                <Path Data="M4 1H10C10.5523 1 11 1.44772 11 2V12C11 12.5523 10.5523 13 10 13H4C3.44772 13 3 12.5523 3 12V2C3 1.44772 3.44772 1 4 1ZM2 2C2 0.89543 2.89543 0 4 0H10C11.1046 0 12 0.895431 12 2V12C12 13.1046 11.1046 14 10 14H4C2.89543 14 2 13.1046 2 12V2ZM4 15H8H9.73244C9.38663 15.5978 8.74028 16 8 16H3.5C1.567 16 0 14.433 0 12.5V4C0 3.25972 0.402199 2.61337 1 2.26756V4V12V12.5C1 13.8807 2.11929 15 3.5 15H4Z"
+                                          Width="12" Height="16" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"/>
+                            </Button>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </ScrollViewer>
         </Grid>
     </Grid>
 </Window>

@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
+using System.Windows.Threading;
 namespace WPFPdfViewer_SmartFill
 {
     /// <summary>
@@ -15,7 +16,8 @@ namespace WPFPdfViewer_SmartFill
     {
         #region Fields
         private SemanticKernelAI semanticKernelOpenAI;
-        ToggleButton aIAssistButton;
+        Button aIAssistButton;
+        DispatcherTimer toolTipTimer; 
         #endregion
 
         #region Constructor
@@ -27,7 +29,37 @@ namespace WPFPdfViewer_SmartFill
             //Load the PDF document in the PDF Viewer
             pdfViewer.Load("../../../Data/form_document_new.pdf");
             //Zoom the PDF Viewer to 50% to view the entire page
-            pdfViewer.ZoomTo(50);
+            pdfViewer.ZoomMode = ZoomMode.FitPage;
+            toolTipTimer = new DispatcherTimer();
+            toolTipTimer.Interval = new TimeSpan(0, 0, 1);
+            toolTipTimer.Tick += ToolTipTimer_Tick;
+
+        }
+
+        /// <summary>
+        /// Stop the timer and close the tooltip of the button
+        /// </summary>
+        /// <param name="sender">Tooltip timer</param>
+        /// <param name="e">Event arguments</param>
+        private void ToolTipTimer_Tick(object? sender, EventArgs e)
+        {
+            //Stop the timer and close the tooltip of the button
+            toolTipTimer.Stop();
+            if (copyUserDataButton1.ToolTip != null)
+            {
+                (copyUserDataButton1.ToolTip as ToolTip).IsOpen = false;
+                copyUserDataButton1.ToolTip = null;
+            }
+            else if (copyUserDataButton2.ToolTip != null)
+            {
+                (copyUserDataButton2.ToolTip as ToolTip).IsOpen = false;
+                copyUserDataButton2.ToolTip = null;
+            }
+            else if (copyUserDataButton3.ToolTip != null)
+            {
+                (copyUserDataButton3.ToolTip as ToolTip).IsOpen = false;
+                copyUserDataButton3.ToolTip = null;
+            }
         }
         #endregion
 
@@ -45,72 +77,6 @@ namespace WPFPdfViewer_SmartFill
             CollapseOpenMenu(toolbar);
             // Add the AI Assistance button to the toolbar
             AddAIAssistanceButton(toolbar);
-        }
-
-        /// <summary>
-        /// Document loaded event of the pdfViewer
-        /// </summary>
-        /// <param name="sender">PdfViewer control</param>
-        /// <param name="args">Event arguments</param>
-        private void pdfViewer_DocumentLoaded(object sender, EventArgs args)
-        {
-            //Collapse the AI Assistance when the document is loaded
-            if (aIAssistButton.IsChecked.Value)
-            {
-                CollapseAIAssistance();
-                aIAssistButton.IsChecked = false;
-            }
-        }
-
-        /// <summary>
-        /// Unchecked event of the AI Assist button
-        /// </summary>
-        /// <param name="sender">AI Assistance button</param>
-        /// <param name="e">Event arguments</param>
-        private void AIAssistButton_Unchecked(object sender, RoutedEventArgs e)
-        {
-            CollapseAIAssistance();
-        }
-
-        /// <summary>
-        /// Checked event of the AI Assist button
-        /// </summary>
-        /// <param name="sender">AI Assistance button</param>
-        /// <param name="e">event arguments</param>
-        private void AIAssistButton_Checked(object sender, RoutedEventArgs e)
-        {
-            //Display the AI assistance grid
-            smartFillGrid.Visibility = Visibility.Visible;
-            userDetailsComboBox.SelectedIndex = 0;
-        }
-
-        /// <summary>
-        /// Selection changed event of the user details combo box
-        /// </summary>
-        /// <param name="sender">Combo box</param>
-        /// <param name="e">Selection event arguments</param>
-        private void userDetailsComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            ComboBox userDetailsMenu = sender as ComboBox;
-            if (userDetailsMenu != null && userDetailsTextBox != null)
-            {
-                //Set the user details based on the selected index on the text box
-                if (userDetailsMenu.SelectedIndex == 0)
-                {
-                    userDetailsTextBox.Text = "Hi, this is John. You can contact me at john123@gmail.com. I am male, born on February 20, 2005. I want to subscribe to a newspaper and learn courses, specifically a Machine Learning course. I am from Alaska.";
-                }
-                else if (userDetailsMenu.SelectedIndex == 1)
-                {
-                    userDetailsTextBox.Text = "S David here. You can reach me at David123@gmail.com. I am male, born on March 15, 2003. I would like to subscribe to a newspaper and am interested in taking a Digital Marketing course. I am from New York.";
-                }
-                else if (userDetailsMenu.SelectedIndex == 2)
-                {
-                    userDetailsTextBox.Text = "Hi, this is Alice. You can contact me at alice456@gmail.com. I am female, born on July 15, 1998. I want to unsubscribe from a newspaper and learn courses, specifically a Cloud Computing course. I am from Texas.";
-                }
-
-                //Make the user details text box read-only
-                userDetailsTextBox.IsReadOnly = true;
-            }
         }
 
         /// <summary>
@@ -132,6 +98,94 @@ namespace WPFPdfViewer_SmartFill
             // Hide the loading indicator
             loadingCanvas.Visibility = Visibility.Collapsed;
             loadingIndicator.Visibility = Visibility.Collapsed;
+        }
+
+        /// <summary>
+        /// Mouse enter event of the border
+        /// </summary>
+        /// <param name="sender">Text border</param>
+        /// <param name="e">Mouse event arguments</param>
+        private void Border_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            Border border = sender as Border;
+            //Display the copy button on mouse enter of the border
+            if (border != null)
+            {
+                if (border.Name.Contains("1"))
+                {
+                    copyUserDataButton1.Visibility = Visibility.Visible;
+                }
+                else if (border.Name.Contains("2"))
+                {
+                    copyUserDataButton2.Visibility = Visibility.Visible;
+                }
+                else if (border.Name.Contains("3"))
+                {
+                    copyUserDataButton3.Visibility = Visibility.Visible;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Mouse leave event of the border
+        /// </summary>
+        /// <param name="sender">Text border</param>
+        /// <param name="e">Mouse event arguments</param>
+        private void Border_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            Border border = sender as Border;
+            //Hide the copy button on mouse leave of the border
+            if (border != null)
+            {
+                if (border.Name.Contains("1"))
+                {
+                    copyUserDataButton1.Visibility = Visibility.Collapsed;
+                }
+                else if (border.Name.Contains("2"))
+                {
+                    copyUserDataButton2.Visibility = Visibility.Collapsed;
+                }
+                else if (border.Name.Contains("3"))
+                {
+                    copyUserDataButton3.Visibility = Visibility.Collapsed;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Click event of the copy button
+        /// </summary>
+        /// <param name="sender">Copy button</param>
+        /// <param name="e">Routed event arguments</param>
+        private void CopyButton_Click(object sender, RoutedEventArgs e)
+        {
+            Button button = sender as Button;
+            if (button != null)
+            {
+                //Add a tooltip to the button
+                ToolTip toolTip = new ToolTip();
+                toolTip.Content = "Text Copied";
+                toolTip.PlacementTarget = button;
+                button.ToolTip = toolTip;
+                toolTip.IsOpen = true;
+                toolTipTimer.Start();
+
+                //Clear the clipboard and set the text to the clipboard
+                Clipboard.Clear();
+                if (button.Name.Contains("1"))
+                {
+
+                    Clipboard.SetText(userDataText1.Text);
+                }
+                else if (button.Name.Contains("2"))
+                {
+                    Clipboard.SetText(userDataText2.Text);
+                }
+                else if (button.Name.Contains("3"))
+                {
+                    Clipboard.SetText(userDataText3.Text);
+                }
+            }
         }
         #endregion
 
@@ -227,17 +281,6 @@ namespace WPFPdfViewer_SmartFill
         }
 
         /// <summary>
-        /// Collapse the AI assistance grid.
-        /// </summary>
-        private void CollapseAIAssistance()
-        {
-            smartFillGrid.Visibility = Visibility.Collapsed;
-            userDetailsTextBox.Text = string.Empty;
-            userDetailsComboBox.SelectedIndex = -1;
-            pdfViewer.Focus();
-        }
-
-        /// <summary>
         /// Collapse the open menu in the toolbar.
         /// </summary>
         /// <param name="toolbar">Toolbar of the PdfViewer</param>
@@ -263,22 +306,25 @@ namespace WPFPdfViewer_SmartFill
         {
             // Get the text search stack panel and annotation button from the toolbar
             StackPanel textSeacrchStack = (StackPanel)toolbar.Template.FindName("PART_TextSearchStack", toolbar);
-            ToggleButton annotationToggleButton = (ToggleButton)toolbar.Template.FindName("PART_Annotations", toolbar);
+            Button textSearchButton = (Button)toolbar.Template.FindName("PART_ButtonTextSearch", toolbar);
             //Create a new toggle button for AI Assist
-            aIAssistButton = new ToggleButton();
+            aIAssistButton = new Button();
             TextBlock aIAssistText = new TextBlock();
             aIAssistText.Text = "Smart Fill";
             aIAssistText.FontSize = 14;
             aIAssistButton.Content = aIAssistText;
-            aIAssistButton.Checked += AIAssistButton_Checked;
-            aIAssistButton.Unchecked += AIAssistButton_Unchecked; ;
-            aIAssistButton.Height = 32;
+            aIAssistButton.Click += smartFillButton_Click;
+            aIAssistButton.VerticalAlignment = VerticalAlignment.Center;
             aIAssistButton.Margin = new Thickness(0, 0, 8, 0);
-            aIAssistButton.Padding = new Thickness(4);
+            aIAssistButton.Padding = new Thickness(3);
             // Set the style of the AI Assist button
-            if (annotationToggleButton != null)
+            aIAssistButton.SetResourceReference(Button.StyleProperty, "WPFPrimaryButtonStyle");
+            aIAssistText.SetResourceReference(Button.ForegroundProperty, "PrimaryForeground");
+            if(textSearchButton != null)
             {
-                aIAssistButton.Style = annotationToggleButton.Style;
+                copyUserDataButton1.Style = textSearchButton.Style;
+                copyUserDataButton2.Style = textSearchButton.Style;
+                copyUserDataButton3.Style = textSearchButton.Style;
             }
             // Add AI Assist button to the text search stack of the toolbar
             if (textSeacrchStack.Children != null && textSeacrchStack.Children.Count > 0)
@@ -291,7 +337,7 @@ namespace WPFPdfViewer_SmartFill
             }
 
             // Apply the color to the buttons in the toolbar
-            ApplyColorToButtons(aIAssistText.Foreground, toolbar);
+            ApplyColorToButtons(textSearchButton.Foreground, toolbar);
         }
 
         /// <summary>
@@ -342,14 +388,18 @@ namespace WPFPdfViewer_SmartFill
                 if (border != null && border.Name != "Part_AnnotationToolbar")
                 {
                     background = border.Background;
+                    aI_Title.BorderBrush = border.BorderBrush;
+                    aI_Title.BorderThickness = border.BorderThickness;
+                    separator.Background = border.BorderBrush;
+                    userData1.BorderBrush = border.BorderBrush;
+                    userData2.BorderBrush = border.BorderBrush;
+                    userData3.BorderBrush = border.BorderBrush;
                 }
             }
 
             //Set the background and foreground for the buttons
             aI_Title.Background = background;
             aI_Title.Foreground = foregroundBrush;
-            smartFillButton.Background = background;
-            smartFillButton.Foreground = foregroundBrush;
         }
 
         /// <summary>
@@ -364,6 +414,7 @@ namespace WPFPdfViewer_SmartFill
             await writer.WriteAsync(resultData);
             await writer.FlushAsync();
             inputFileStream.Position = 0;
+            // Import the data to the PDF Viewer from the MemoryStream
             byte[] formData = new byte[inputFileStream.Length];
             inputFileStream.Read(formData, 0, formData.Length);
             pdfViewer.ImportFormData(formData, Syncfusion.Pdf.Parsing.DataFormat.XFdf);
@@ -379,25 +430,29 @@ namespace WPFPdfViewer_SmartFill
         {
             string result = string.Empty;
             // Get the selected user details from the combo box
-            string selectedUserDetails = userDetailsTextBox.Text;
-            // Get the XFDF file content from the PDF Viewer
-            string loadedFileDetails = ExportFormDetails();
-            // Get the hint values for the form fields
-            string CustomValues = HintValuesforFields();
-            // Create a prompt message for the semantic kernel AI
-            string mergePrompt = $"Merge the input data into the XFDF file content. Hint text: {CustomValues}. " +
-                            $"Ensure the input data matches suitable field names. " +
-                            $"Here are the details: " +
-                            $"input data: {selectedUserDetails}, " +
-                            $"XFDF information: {loadedFileDetails}. " +
-                            $"Provide the resultant XFDF directly. " +
-                            $"Some conditions need to follow: " +
-                            $"1. input data is not directly provided as the field name; you need to think and merge appropriately. " +
-                            $"2. When comparing input data and field names, ignore case sensitivity. " +
-                            $"3. First, determine the best match for the field name. If there isn’t an exact match, use the input data to find a close match. " +
-                            $"remove ```xml and remove ``` if it is there in the code.";
-            // Get the answer from GPT using the semantic kernel AI
-            result = await semanticKernelOpenAI.GetAnswerFromGPT(mergePrompt);
+            string copiedDetails = Clipboard.GetText();
+            if (!string.IsNullOrEmpty(copiedDetails))
+            {
+                // Get the XFDF file content from the PDF Viewer
+                string loadedFileDetails = ExportFormDetails();
+                // Get the hint values for the form fields
+                string CustomValues = HintValuesforFields();
+                // Create a prompt message for the semantic kernel AI
+                string mergePrompt = $"Merge the input data into the XFDF file content. Hint text: {CustomValues}. " +
+                                $"Ensure the input data matches suitable field names. " +
+                                $"Here are the details: " +
+                                $"input data: {copiedDetails}, " +
+                                $"XFDF information: {loadedFileDetails}. " +
+                                $"Provide the resultant XFDF directly. " +
+                                $"Some conditions need to follow: " +
+                                $"1. input data is not directly provided as the field name; you need to think and merge appropriately. " +
+                                $"2. When comparing input data and field names, ignore case sensitivity. " +
+                                $"3. First, determine the best match for the field name. If there isn’t an exact match, use the input data to find a close match. " +
+                                $"remove ```xml and remove ``` if it is there in the code.";
+                // Get the answer from GPT using the semantic kernel AI
+                result = await semanticKernelOpenAI.GetAnswerFromGPT(mergePrompt);
+            }
+
             return result;
         }
         #endregion
