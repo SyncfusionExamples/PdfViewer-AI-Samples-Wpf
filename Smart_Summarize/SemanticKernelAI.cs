@@ -98,7 +98,7 @@ namespace Smart_Summarize
                 builder.AppendLine(result.Item);
             }
             string message = builder.ToString();
-            var answer = await GetAnswerFromGPT("You are a helpful assistant. Use the provided PDF document pages and pick a precise page to answer the user question, proivde a reference at the bottom of the content with page numbers like ex: Reference: [20,21,23]. Pages: " + message, question);
+            var answer = await GetAnswerFromGPT("You are a helpful assistant. Use the provided PDF document pages and pick a precise page to answer the user question. Provide the answer in plain text without any special formatting or Markdown syntax. Pages: " + message, question);
 
             return answer;
         }
