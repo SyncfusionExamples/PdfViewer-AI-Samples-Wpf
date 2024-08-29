@@ -27,6 +27,9 @@ namespace WPFPdfViewerAI_SmartRedaction
             InitializeComponent();
             // Load the PDF document
             pdfViewer.Load("../../../Data/Confidential_Medical_Record.pdf");
+
+            //Create an instance of the SemanticKernelAI class which initializes the OpenAI client
+            semanticKernelOpenAI = new SemanticKernelAI("YOUR-AI-KEY");
         }
         #endregion
 
@@ -353,8 +356,6 @@ namespace WPFPdfViewerAI_SmartRedaction
                 }
             }
 
-            //Create an instance of the SemanticKernelAI class which initializes the OpenAI client
-            semanticKernelOpenAI = new SemanticKernelAI("YOUR-AI-KEY");
             //Check whether the selected redact options contain any category to redact
             if (selectedItems.Count > 0)
             {
@@ -422,6 +423,8 @@ namespace WPFPdfViewerAI_SmartRedaction
                     information_Grid.Visibility = Visibility.Collapsed;
                     option_Scroll.Visibility = Visibility.Visible;
                     contents_Stack.Visibility = Visibility.Visible;
+                    selectAll.IsChecked = false;
+                    pdfViewer.PageRedactor.EnableRedactionMode = false;
                 }
 
                 //Disable the apply button as none will be selected after redaction
@@ -898,7 +901,7 @@ namespace WPFPdfViewerAI_SmartRedaction
             }
             // Add the instructions to the prompt
             stringBuilder.AppendLine("Please provide the extracted information as a plain list, separated by commas, without any prefix or numbering or extra content.");
-            //stringBuilder.AppendLine("If the text contains names in the format 'First Name: X, Second Name: Y', return them separately as 'X, Y'. For example, for 'First Name: Sync, Second Name: Fusion', return 'Sync, Fusion'.");
+            stringBuilder.AppendLine("While extracting names, Please extract names without including any titles such as 'Mr.,' 'Dr.,' or 'Mrs.' Simply provide the names without any prefixes.");
             string prompt = stringBuilder.ToString();
 
             // Call the OpenAI client to extract the selected sensitive information
