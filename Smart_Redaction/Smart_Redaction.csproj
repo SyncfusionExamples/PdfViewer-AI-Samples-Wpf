@@ -9,10 +9,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.SemanticKernel" Version="1.16.2" />
-    <PackageReference Include="Syncfusion.PdfViewer.WPF" Version="26.2.8" />
-    <PackageReference Include="Syncfusion.SfBusyIndicator.WPF" Version="26.2.8" />
-    <PackageReference Include="System.Drawing.Common" Version="8.0.7" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="*" />
+    <PackageReference Include="Syncfusion.PdfViewer.WPF" Version="*" />
+    <PackageReference Include="Syncfusion.SfBusyIndicator.WPF" Version="*" />
+    <PackageReference Include="System.Drawing.Common" Version="*" />
+    <PackageReference Include="Syncfusion.SfSkinManager.WPF" Version="*" />
+    <PackageReference Include="Syncfusion.Themes.Windows11Light.WPF" Version="*" />
   </ItemGroup>
 
 </Project>

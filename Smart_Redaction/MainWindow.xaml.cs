@@ -27,6 +27,9 @@ namespace WPFPdfViewerAI_SmartRedaction
             InitializeComponent();
             // Load the PDF document
             pdfViewer.Load("../../../Data/Confidential_Medical_Record.pdf");
+
+            //Create an instance of the SemanticKernelAI class which initializes the OpenAI client
+            semanticKernelOpenAI = new SemanticKernelAI("YOUR-AI-KEY");
         }
         #endregion
 
@@ -269,6 +272,11 @@ namespace WPFPdfViewerAI_SmartRedaction
         /// <param name="e">Event arguments</param>
         private void AIAssistButton_Unchecked(object sender, RoutedEventArgs e)
         {
+            ToggleButton toggleButton = sender as ToggleButton;
+            if (toggleButton != null)
+            {
+                (toggleButton.Content as TextBlock).SetResourceReference(ToggleButton.ForegroundProperty, "SecondaryForeground");
+            }
             CollapseAIAssistance();
         }
 
@@ -279,6 +287,11 @@ namespace WPFPdfViewerAI_SmartRedaction
         /// <param name="e">Event arguments</param>
         private void AIAssistButton_Checked(object sender, RoutedEventArgs e)
         {
+            ToggleButton toggleButton = sender as ToggleButton;
+            if (toggleButton != null)
+            {
+                (toggleButton.Content as TextBlock).SetResourceReference(ToggleButton.ForegroundProperty, "PrimaryForeground");
+            }
             // Show the AI assistance grid
             aiGrid.Visibility = Visibility.Visible;
         }
@@ -343,8 +356,6 @@ namespace WPFPdfViewerAI_SmartRedaction
                 }
             }
 
-            //Create an instance of the SemanticKernelAI class which initializes the OpenAI client
-            semanticKernelOpenAI = new SemanticKernelAI("YOUR-AI-KEY");
             //Check whether the selected redact options contain any category to redact
             if (selectedItems.Count > 0)
             {
@@ -397,7 +408,7 @@ namespace WPFPdfViewerAI_SmartRedaction
                 //Apply the redaction to the marked regions in the PDF document
                 pdfViewer.PageRedactor.ApplyRedaction();
                 ClearMarkedRegionForRedaction();
-                for (int infoIndex = information_Stack.Children.Count - 2; infoIndex >= 0; infoIndex--)
+                for (int infoIndex = information_Stack.Children.Count - 2; infoIndex >= 1; infoIndex--)
                 {
                     CheckBox checkBox = information_Stack.Children[infoIndex] as CheckBox;
                     if (checkBox != null && (bool)checkBox.IsChecked)
@@ -412,6 +423,8 @@ namespace WPFPdfViewerAI_SmartRedaction
                     information_Grid.Visibility = Visibility.Collapsed;
                     option_Scroll.Visibility = Visibility.Visible;
                     contents_Stack.Visibility = Visibility.Visible;
+                    selectAll.IsChecked = false;
+                    pdfViewer.PageRedactor.EnableRedactionMode = false;
                 }
 
                 //Disable the apply button as none will be selected after redaction
@@ -514,26 +527,29 @@ namespace WPFPdfViewerAI_SmartRedaction
         /// Applies the background and foreground color to the buttons
         /// </summary>
         /// <param name="foregroundColor"></param>
-        private void ApplyColorforButtons(System.Windows.Media.Brush foregroundColor)
+        private void ApplyColorforButtons(System.Windows.Media.Brush foregroundColor, DocumentToolbar toolbar)
         {
-            //Create the linear gradient brush for the loading indicator
-            LinearGradientBrush linearGradientBrush = new LinearGradientBrush();
-            linearGradientBrush.StartPoint = new System.Windows.Point(0.5, 0);
-            linearGradientBrush.EndPoint = new System.Windows.Point(0.5, 1);
-            linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(0xFF, 0xFE, 0xFE, 0xFE), 0.027));
-            linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(0xFF, 0xFE, 0xFE, 0xFE), 0.029));
-            linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(0xFF, 0xF0, 0xF0, 0xF0), 0.498));
-            linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(0xE2, 0xE2, 0xE2, 0xE2), 0.966));
-            linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(0xE2, 0xE2, 0xE2, 0xE2), 0.968));
+            // Retrieve the root element of the template
+            var rootElement = VisualTreeHelper.GetChild(toolbar, 0) as FrameworkElement;
+            System.Windows.Media.Brush background = System.Windows.Media.Brushes.Transparent;
+            if (rootElement != null)
+            {
+                // Traverse the visual tree to find the first Border
+                var border = FindVisualChild<Border>(rootElement);
+                if (border != null && border.Name != "Part_AnnotationToolbar")
+                {
+                    background = border.Background;
+                }
+            }
 
             //Set the background and foreground for the buttons
-            scanButton.Background = linearGradientBrush;
+            scanButton.Background = background;
             scanButton.Foreground = foregroundColor;
-            cancelButton.Background = linearGradientBrush;
+            cancelButton.Background = background;
             cancelButton.Foreground = foregroundColor;
-            applyButton.Background = linearGradientBrush;
+            applyButton.Background = background;
             applyButton.Foreground = foregroundColor;
-            aI_Title.Background = linearGradientBrush;
+            aI_Title.Background = background;
             aI_Title.Foreground = foregroundColor;
         }
 
@@ -555,14 +571,12 @@ namespace WPFPdfViewerAI_SmartRedaction
             aIAssistButton.Content = aIAssistText;
             aIAssistButton.Checked += AIAssistButton_Checked;
             aIAssistButton.Unchecked += AIAssistButton_Unchecked;
-            aIAssistButton.Height = 32;
+            aIAssistButton.VerticalAlignment = VerticalAlignment.Center;
             aIAssistButton.Margin = new Thickness(0, 0, 8, 0);
             aIAssistButton.Padding = new Thickness(4);
             // Set the style of the AI Assist button
-            if (annotationToggleButton != null)
-            {
-                aIAssistButton.Style = annotationToggleButton.Style;
-            }
+            aIAssistButton.SetResourceReference(ToggleButton.StyleProperty, "WPFToggleButtonStyle");
+            aIAssistText.SetResourceReference(ToggleButton.ForegroundProperty, "SecondaryForeground");
             // Add the AI assistance button to the text search stack panel
             if (textSeacrchStack.Children != null && textSeacrchStack.Children.Count > 0)
             {
@@ -574,7 +588,39 @@ namespace WPFPdfViewerAI_SmartRedaction
             }
 
             //Apply the background and foreground color to the buttons in the application
-            ApplyColorforButtons(aIAssistText.Foreground);
+            ApplyColorforButtons(annotationToggleButton.Foreground, toolbar);
+        }
+
+        /// <summary>
+        /// Method to find the visual child of the parent element.
+        /// </summary>
+        /// <typeparam name="T">Type of the child</typeparam>
+        /// <param name="parent">Parent element</param>
+        /// <returns>Returns the specified type of child</returns>
+        private T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            if (parent != null && VisualTreeHelper.GetChildrenCount(parent) > 0)
+            {
+                // Traverse the visual tree to find the first child of the specified type
+                for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+                {
+                    var child = VisualTreeHelper.GetChild(parent, i);
+                    // Check if the child is of the specified type
+                    if (child is T tChild)
+                    {
+                        return tChild;
+                    }
+
+                    // Recursively search the child elements
+                    var result = FindVisualChild<T>(child);
+                    if (result != null)
+                    {
+                        return result;
+                    }
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -855,7 +901,7 @@ namespace WPFPdfViewerAI_SmartRedaction
             }
             // Add the instructions to the prompt
             stringBuilder.AppendLine("Please provide the extracted information as a plain list, separated by commas, without any prefix or numbering or extra content.");
-            //stringBuilder.AppendLine("If the text contains names in the format 'First Name: X, Second Name: Y', return them separately as 'X, Y'. For example, for 'First Name: Sync, Second Name: Fusion', return 'Sync, Fusion'.");
+            stringBuilder.AppendLine("While extracting names, Please extract names without including any titles such as 'Mr.,' 'Dr.,' or 'Mrs.' Simply provide the names without any prefixes.");
             string prompt = stringBuilder.ToString();
 
             // Call the OpenAI client to extract the selected sensitive information
