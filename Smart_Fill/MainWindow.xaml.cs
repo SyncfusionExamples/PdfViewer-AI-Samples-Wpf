@@ -84,7 +84,7 @@ namespace WPFPdfViewer_SmartFill
         /// </summary>
         /// <param name="sender">Smart Fill button</param>
         /// <param name="e">Event arguments</param>
-        private async void smartFillButton_Click(object sender, RoutedEventArgs e)
+        private async void SmartFillButton_Click(object sender, RoutedEventArgs e)
         {
             //Display the loading indicator
             loadingCanvas.Visibility = Visibility.Visible;
@@ -313,7 +313,7 @@ namespace WPFPdfViewer_SmartFill
             aIAssistText.Text = "Smart Fill";
             aIAssistText.FontSize = 14;
             aIAssistButton.Content = aIAssistText;
-            aIAssistButton.Click += smartFillButton_Click;
+            aIAssistButton.Click += SmartFillButton_Click;
             aIAssistButton.VerticalAlignment = VerticalAlignment.Center;
             aIAssistButton.Margin = new Thickness(0, 0, 8, 0);
             aIAssistButton.Padding = new Thickness(3);
