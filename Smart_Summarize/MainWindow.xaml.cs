@@ -27,7 +27,9 @@ namespace Smart_Summarize
         public MainWindow()
         {
             InitializeComponent();
+            //Load the PDF document in the PdfViewer
             pdfViewer.Load("../../../Data/GIS Succinctly.pdf");
+            //Initialize the Semantic Kernel AI for summarizing the PDF document
             semanticKernelOpenAI = new SemanticKernelAI("YOUR-AI-KEY");
         }
         #endregion
@@ -67,17 +69,26 @@ namespace Smart_Summarize
         private void inputText_GotFocus(object sender, RoutedEventArgs e)
         {
             //Add the default prompt to the input text box
-            inputText.Text = "";
-            SolidColorBrush textForeGround = inputText.Foreground as SolidColorBrush;
-            if (textForeGround != null)
+            if (inputText.Text == "Ask a question about this document...")
             {
-                //Make the text color half transparent for the default prompt
-                inputText.Foreground = new SolidColorBrush(Color.FromArgb((byte)((int)textForeGround.Color.A * 2), textForeGround.Color.R, textForeGround.Color.G, textForeGround.Color.B));
+                inputText.Text = "";
+                SolidColorBrush textForeGround = inputText.Foreground as SolidColorBrush;
+                if (textForeGround != null)
+                {
+                    //Make the text color half transparent for the default prompt
+                    inputText.Foreground = new SolidColorBrush(Color.FromArgb((byte)((int)textForeGround.Color.A * 2), textForeGround.Color.R, textForeGround.Color.G, textForeGround.Color.B));
+                }
             }
         }
 
+        /// <summary>
+        /// Lost focus event for the input text box
+        /// </summary>
+        /// <param name="sender">Text box</param>
+        /// <param name="e">Event arguments</param>
         private void inputText_LostFocus(object sender, RoutedEventArgs e)
         {
+            //If the input text box is empty, add the default prompt to the chat box
             if (inputText.Text.Length <= 0)
             {
                 AddDefaultPromptToChatBox();
@@ -104,7 +115,10 @@ namespace Smart_Summarize
             }
             //Expand the AI Assistance when the button is checked
             summarizeGrid.Visibility = Visibility.Visible;
-            inputText.Text = string.Empty;
+            if (inputText.Text != "Ask a question about this document...")
+            {
+                inputText.Text = string.Empty;
+            }
             //Add the default prompt to the input text box
             AddDefaultPromptToChatBox();
             if (chatStack.Children.Count == 0)
@@ -112,9 +126,11 @@ namespace Smart_Summarize
                 //Add the initial user chat question to the chat stack
                 AddUserChat("Summarize this PDF document");
 
+                //Show the loading indicator for summarizing the PDF
                 loadingCanvas.Visibility = Visibility.Visible;
                 loadingIndicator.Header = "Summarizing the PDF...";
                 loadingIndicator.Visibility = Visibility.Visible;
+
                 //Extract the text from the PDF document
                 await ExtractDetailsFromPDF();
 
@@ -123,11 +139,17 @@ namespace Smart_Summarize
 
                 //Display the summarized text in the AI Result TextBlock
                 AddAIChat(summaryText);
+                //Hide the loading indicator once the summarization is completed
                 loadingCanvas.Visibility = Visibility.Collapsed;
                 loadingIndicator.Visibility = Visibility.Collapsed;
             }
         }
 
+        /// <summary>
+        /// Click event for the send button in the chat box
+        /// </summary>
+        /// <param name="sender">Send button</param>
+        /// <param name="e">Event arguments</param>
         private async void sendButton_Click(object sender, RoutedEventArgs e)
         {
             if(!string.IsNullOrEmpty(inputText.Text))
@@ -137,13 +159,16 @@ namespace Smart_Summarize
                 inputText.Text = string.Empty;
                 AddDefaultPromptToChatBox();
 
+                //Show the loading indicator for reviewing the question
                 loadingCanvas.Visibility = Visibility.Visible;
                 loadingIndicator.Header = "Reviewing Question...";
                 loadingIndicator.Visibility = Visibility.Visible;
+
                 //Get the answer from GPT using the semantic kernel for the user input
                 string answer = await semanticKernelOpenAI.AnswerQuestion(chatText.Text);
                 //Display the answer in the AI Result TextBlock
                 AddAIChat(answer);
+                //Hide the loading indicator once the answer is displayed
                 loadingCanvas.Visibility = Visibility.Collapsed;
                 loadingIndicator.Visibility = Visibility.Collapsed;
             }
@@ -190,9 +215,11 @@ namespace Smart_Summarize
                 textSeacrchStack.Children.Add(aIAssistButton);
             }
 
+            //Apply the color to the buttons added in the toolbar
             ApplyColorToButtons(textSearchButton.Foreground, toolbar);
         }
 
+        #region Path Geometry Helper Methods
         internal Geometry PathMarkupToGeometry(string pathMarkup)
         {
             string xaml =
@@ -214,6 +241,7 @@ namespace Smart_Summarize
             stream.Position = 0;
             return stream;
         }
+        #endregion
 
         /// <summary>
         /// Apply the color to the buttons in the toolbar.
@@ -248,14 +276,15 @@ namespace Smart_Summarize
         /// </summary>
         private void AddDefaultPromptToChatBox()
         {
-            //Add the default prompt to the input text box
-            inputText.Text = "Type your prompt for assistance...";
             SolidColorBrush textForeGround = inputText.Foreground as SolidColorBrush;
-            if (textForeGround != null)
+            if (textForeGround != null && string.IsNullOrEmpty(inputText.Text))
             {
                 //Make the text color half transparent for the default prompt
                 inputText.Foreground = new SolidColorBrush(Color.FromArgb((byte)((int)textForeGround.Color.A / 2), textForeGround.Color.R, textForeGround.Color.G, textForeGround.Color.B));
             }
+
+            //Add the default prompt to the input text box
+            inputText.Text = "Ask a question about this document...";
         }
 
         /// <summary>
