@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Data\send_icon.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SemanticKernel" Version="*" />
+    <PackageReference Include="SmartComponents.LocalEmbeddings" Version="0.1.0-preview10148" />
+    <PackageReference Include="Syncfusion.PdfViewer.WPF" Version="*" />
+    <PackageReference Include="Syncfusion.SfBusyIndicator.WPF" Version="*" />
+    <PackageReference Include="Syncfusion.Themes.Windows11Light.WPF" Version="*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Data\send_icon.png" />
+  </ItemGroup>
+
+</Project>
