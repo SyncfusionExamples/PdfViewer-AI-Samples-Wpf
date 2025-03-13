@@ -1,6 +1,6 @@
-﻿using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
-using Microsoft.SemanticKernel;
+﻿using Microsoft.Extensions.AI;
+using Azure.AI.OpenAI;
+
 
 namespace WPFPdfViewer_SmartFill
 {
@@ -11,8 +11,7 @@ namespace WPFPdfViewer_SmartFill
         const string deploymentName = "YOUR-DEPLOYMENT-NAME";
         internal string key = string.Empty;
 
-        IChatCompletionService chatCompletionService;
-        Kernel kernel;
+        private static IChatClient clientAI;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SemanticKernelAI"/> class.
@@ -20,10 +19,7 @@ namespace WPFPdfViewer_SmartFill
         /// <param name="key">Key for the semantic kernal API</param>
         public SemanticKernelAI(string key)
         {
-            this.key = key;
-            var builder = Kernel.CreateBuilder().AddAzureOpenAIChatCompletion(deploymentName, endpoint, key);
-            kernel = builder.Build();
-            chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
+            clientAI = new AzureOpenAIClient(new System.Uri(endpoint), new System.ClientModel.ApiKeyCredential(key)).AsChatClient(deploymentName);
         }
 
         /// <summary>
@@ -33,18 +29,13 @@ namespace WPFPdfViewer_SmartFill
         /// <returns>Returns the form data as a string</returns>
         public async Task<string> GetAnswerFromGPT(string systemPrompt)
         {
-            var history = new ChatHistory();
-            history.AddSystemMessage(systemPrompt);
-            OpenAIPromptExecutionSettings openAIPromptExecutionSettings = new()
+            if (clientAI != null)
             {
-                ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions
-            };
-            var result = await chatCompletionService.GetChatMessageContentAsync(
-            history,
-            executionSettings: openAIPromptExecutionSettings,
-            kernel: kernel);
-
-            return result.ToString();
+                //// Send the chat completion request to the OpenAI API and await the response.
+                var response = await clientAI.GetResponseAsync(systemPrompt);
+                return response.ToString();
+            }
+            return string.Empty;
         }
     }
 }

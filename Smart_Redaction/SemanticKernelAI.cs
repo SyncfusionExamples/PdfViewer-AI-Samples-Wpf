@@ -1,6 +1,6 @@
-﻿using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
-using Microsoft.SemanticKernel;
+﻿
+using Microsoft.Extensions.AI;
+using Azure.AI.OpenAI;
 
 namespace WPFPdfViewerAI_SmartRedaction
 {
@@ -11,8 +11,7 @@ namespace WPFPdfViewerAI_SmartRedaction
         const string deploymentName = "YOUR-DEPLOYMENT-NAME";
         internal string key = string.Empty;
 
-        IChatCompletionService chatCompletionService;
-        Kernel kernel;
+        private static IChatClient clientAI;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SemanticKernelAI"/> class.
@@ -20,10 +19,7 @@ namespace WPFPdfViewerAI_SmartRedaction
         /// <param name="key">Key for the semantic kernal API</param>
         public SemanticKernelAI(string key)
         {
-            this.key = key;
-            var builder = Kernel.CreateBuilder().AddAzureOpenAIChatCompletion(deploymentName, endpoint, key);
-            kernel = builder.Build();
-            chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
+            clientAI = new AzureOpenAIClient(new System.Uri(endpoint), new System.ClientModel.ApiKeyCredential(key)).AsChatClient(deploymentName);
         }
 
         /// <summary>
@@ -34,19 +30,19 @@ namespace WPFPdfViewerAI_SmartRedaction
         /// <returns>Returns the sensitive informations as a list</returns>
         public async Task<string> GetAnswerFromGPT(string systemPrompt, string userText)
         {
-            var history = new ChatHistory();
-            history.AddSystemMessage(systemPrompt);
-            history.AddUserMessage(userText);
-            OpenAIPromptExecutionSettings openAIPromptExecutionSettings = new()
+            if (clientAI != null)
             {
-                ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions
-            };
-            var result = await chatCompletionService.GetChatMessageContentAsync(
-            history,
-            executionSettings: openAIPromptExecutionSettings,
-            kernel: kernel);
 
-            return result.ToString();
+                var chatMessages = new List<ChatMessage>
+                {
+                    new ChatMessage(ChatRole.System, systemPrompt),
+                    new ChatMessage(ChatRole.User, userText)
+                };
+
+                var result = await clientAI.GetResponseAsync(chatMessages);
+                return result.ToString();
+            }
+            return string.Empty;
         }
     }
 }

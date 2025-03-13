@@ -1,9 +1,7 @@
-﻿using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
-using Microsoft.SemanticKernel;
+﻿using Microsoft.Extensions.AI;
+using Azure.AI.OpenAI;
 using System.Text;
 using SmartComponents.LocalEmbeddings;
-
 namespace Smart_Summarize
 {
     internal class SemanticKernelAI
@@ -13,9 +11,7 @@ namespace Smart_Summarize
         const string deploymentName = "YOUR-DEPLOYMENT-NAME";
         internal string key = string.Empty;
 
-        IChatCompletionService chatCompletionService;
-        Kernel kernel;
-
+        private static IChatClient clientAI;
         public Dictionary<string, EmbeddingF32>? PageEmbeddings { get; set; }
 
         /// <summary>
@@ -24,10 +20,7 @@ namespace Smart_Summarize
         /// <param name="key">Key for the semantic kernal API</param>
         public SemanticKernelAI(string key)
         {
-            this.key = key;
-            var builder = Kernel.CreateBuilder().AddAzureOpenAIChatCompletion(deploymentName, endpoint, key);
-            kernel = builder.Build();
-            chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
+            clientAI = new AzureOpenAIClient(new System.Uri(endpoint), new System.ClientModel.ApiKeyCredential(key)).AsChatClient(deploymentName);
         }
 
         /// <summary>
@@ -40,7 +33,6 @@ namespace Smart_Summarize
             var embedder = new LocalEmbedder();
             PageEmbeddings = chunks.Select(x => KeyValuePair.Create(x, embedder.Embed(x))).ToDictionary(k => k.Key, v => v.Value);
         }
-
         /// <summary>
         /// Method to get the answer from GPT using the semantic kernel
         /// </summary>
@@ -48,20 +40,18 @@ namespace Smart_Summarize
         /// <returns>Returns the form data as a string</returns>
         public async Task<string> GetAnswerFromGPT(string systemPrompt)
         {
-            List<string> message = PageEmbeddings.Keys.Take(10).ToList();
-            var history = new ChatHistory();
-            history.AddSystemMessage(systemPrompt);
-            history.AddUserMessage(string.Join(" ", message));
-            OpenAIPromptExecutionSettings openAIPromptExecutionSettings = new()
+            if (clientAI != null)
             {
-                ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions
-            };
-            var result = await chatCompletionService.GetChatMessageContentAsync(
-            history,
-            executionSettings: openAIPromptExecutionSettings,
-            kernel: kernel);
-
-            return result.ToString();
+                List<string> message = PageEmbeddings.Keys.Take(10).ToList();
+                var chatMessages = new List<ChatMessage>
+                {
+                    new ChatMessage(ChatRole.System, systemPrompt),
+                    new ChatMessage(ChatRole.User, string.Join(" ", message))
+                };
+                var response = await clientAI.GetResponseAsync(chatMessages);
+                return response.ToString();
+            }
+            return string.Empty;
         }
 
         /// <summary>
@@ -72,19 +62,19 @@ namespace Smart_Summarize
         /// <returns>Returns the form data as a string</returns>
         public async Task<string> GetAnswerFromGPT(string systemPrompt, string userText)
         {
-            var history = new ChatHistory();
-            history.AddSystemMessage(systemPrompt);
-            history.AddUserMessage(userText);
-            OpenAIPromptExecutionSettings openAIPromptExecutionSettings = new()
+            if (clientAI != null)
             {
-                ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions
-            };
-            var result = await chatCompletionService.GetChatMessageContentAsync(
-            history,
-            executionSettings: openAIPromptExecutionSettings,
-            kernel: kernel);
 
-            return result.ToString();
+                var chatMessages = new List<ChatMessage>
+                {
+                    new ChatMessage(ChatRole.System, systemPrompt),
+                    new ChatMessage(ChatRole.User, userText)
+                };
+
+                var result = await clientAI.GetResponseAsync(chatMessages);
+                return result.ToString();
+            }
+            return string.Empty;
         }
 
         public async Task<string> AnswerQuestion(string question)
