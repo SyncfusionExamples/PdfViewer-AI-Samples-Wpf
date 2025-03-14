@@ -4,21 +4,21 @@ using System.Text;
 using SmartComponents.LocalEmbeddings;
 namespace Smart_Summarize
 {
-    internal class SemanticKernelAI
+    internal class MicrosoftAIExtension
     {
 
         const string endpoint = "YOUR-AI-ENDPOINT";
         const string deploymentName = "YOUR-DEPLOYMENT-NAME";
         internal string key = string.Empty;
 
-        private static IChatClient clientAI;
+        private IChatClient clientAI;
         public Dictionary<string, EmbeddingF32>? PageEmbeddings { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SemanticKernelAI"/> class.
+        /// Initializes a new instance of the <see cref="MicrosoftAIExtension"/> class.
         /// </summary>
         /// <param name="key">Key for the semantic kernal API</param>
-        public SemanticKernelAI(string key)
+        public MicrosoftAIExtension(string key)
         {
             clientAI = new AzureOpenAIClient(new System.Uri(endpoint), new System.ClientModel.ApiKeyCredential(key)).AsChatClient(deploymentName);
         }

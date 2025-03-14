@@ -14,7 +14,7 @@ namespace Smart_Summarize
     public partial class MainWindow : Window
     {
         #region Fields
-        private SemanticKernelAI semanticKernelOpenAI;
+        private MicrosoftAIExtension microsoftAIExtension;
         private ToggleButton aIAssistButton;
         private UserChatBox userInputChat;
         private AIResultChatBox aIResultChat;
@@ -28,7 +28,7 @@ namespace Smart_Summarize
             //Load the PDF document in the PdfViewer
             pdfViewer.Load("../../../Data/GIS Succinctly.pdf");
             //Initialize the Semantic Kernel AI for summarizing the PDF document
-            semanticKernelOpenAI = new SemanticKernelAI("YOUR-AI-KEY");
+            microsoftAIExtension = new MicrosoftAIExtension("YOUR-AI-KEY");
         }
         #endregion
 
@@ -163,7 +163,7 @@ namespace Smart_Summarize
                 loadingIndicator.Visibility = Visibility.Visible;
 
                 //Get the answer from GPT using the semantic kernel for the user input
-                string answer = await semanticKernelOpenAI.AnswerQuestion(chatText.Text);
+                string answer = await microsoftAIExtension.AnswerQuestion(chatText.Text);
                 //Display the answer in the AI Result TextBlock
                 AddAIChat(answer);
                 //Hide the loading indicator once the answer is displayed
@@ -333,7 +333,7 @@ namespace Smart_Summarize
                 extractedText.Add(text);
             }
 
-            await semanticKernelOpenAI.CreateEmbeddedPage(extractedText.ToArray());
+            await microsoftAIExtension.CreateEmbeddedPage(extractedText.ToArray());
         }
 
         /// <summary>
@@ -343,7 +343,7 @@ namespace Smart_Summarize
         private async Task<string> SummarizePDF()
         {
             //Summarize the text using the Semantic Kernel AI
-            string summary = await semanticKernelOpenAI.GetAnswerFromGPT("You are a helpful assistant. Your task is to analyze the provided text and generate short summary as a plain text.");
+            string summary = await microsoftAIExtension.GetAnswerFromGPT("You are a helpful assistant. Your task is to analyze the provided text and generate short summary as a plain text.");
             return summary;
         }
         #endregion
