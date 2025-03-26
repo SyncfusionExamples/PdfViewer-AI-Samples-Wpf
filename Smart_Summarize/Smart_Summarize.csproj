@@ -14,13 +14,13 @@
 
   <ItemGroup>
 	  
-   <PackageReference Include="SmartComponents.LocalEmbeddings" Version="*" />
+   <PackageReference Include="SmartComponents.LocalEmbeddings" Version="0.1.0-preview10148" />
 	  <PackageReference Include="Syncfusion.PdfViewer.WPF" Version="*" />
 	  <PackageReference Include="Syncfusion.SfBusyIndicator.WPF" Version="*" />
 	  <PackageReference Include="Syncfusion.Themes.Windows11Light.WPF" Version="*" />
 	<PackageReference Include="Azure.AI.OpenAI" Version="*" />
-	  <PackageReference Include="Microsoft.Extensions.AI" Version="*" />
-    <PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="*" />
+	  <PackageReference Include="Microsoft.Extensions.AI" Version="9.3.0-preview.1.25114.11" />
+    <PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="9.3.0-preview.1.25114.11" />
   </ItemGroup>
 
   <ItemGroup>
