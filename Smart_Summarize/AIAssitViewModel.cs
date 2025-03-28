@@ -5,7 +5,7 @@ using System.ComponentModel;
 
 namespace Smart_Summarize
 {
-    internal class ViewModel : INotifyPropertyChanged
+    internal class AIAssitViewModel : INotifyPropertyChanged
     {
         #region Fields
         private ObservableCollection<object> chats;
@@ -75,7 +75,7 @@ namespace Smart_Summarize
         }
         #endregion
         #region constructor
-        public ViewModel(PdfViewerControl viewer)
+        public AIAssitViewModel(PdfViewerControl viewer)
         {
             pdfViewer = viewer;
             Chats = new ObservableCollection<object>();
@@ -107,11 +107,18 @@ namespace Smart_Summarize
             // Update chats on the UI thread
             Chats.Add(new TextMessage
             {
-                Author = new Author { Name = "Bot" },
+                Author = new Author { Name = "AIAssistant" },
                 DateTime = DateTime.Now,
                 Text = summaryText
             });
-            string suggestions = await microsoftAIExtension.GetAnswerFromGPT("You are a helpful assistant. Your task is to analyze the answer and ask 3 short one-line suggestion questions that user asks.", summaryText);
+            await AddSuggestions(summaryText);
+        }
+        /// <summary>
+        /// Generate suggestion from the answers
+        /// </summary>
+        private async Task AddSuggestions(String text)
+        {
+            string suggestions = await microsoftAIExtension.GetAnswerFromGPT("You are a helpful assistant. Your task is to analyze the answer and ask 3 short one-line suggestion questions that user asks.", text);
 
             var suggestionList = suggestions.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var suggestion in suggestionList)
@@ -152,31 +159,29 @@ namespace Smart_Summarize
         /// <param name="e">The event data containing information about the collection change.</param>
         private async void Chats_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
-            var item = e.NewItems?[0] as ITextMessage;
-            if (item != null)
+            if (e.NewItems != null && e.NewItems.Count > 0)
             {
-                if (item.Text != "Summarizing the PDF document...")
+                var item = e.NewItems[0] as ITextMessage;
+                if (item != null)
                 {
-                    if (item.Author.Name == currentUser.Name)
+                    if (item.Text != "Summarizing the PDF document...")
                     {
-                        string answer = await microsoftAIExtension.GetAnswerFromGPT("You are a helpful assistant. Your task is to analyze the provided question and answer the question based on the pdf", item.Text);
-                        Chats.Add(new TextMessage
+                        if (item.Author.Name == currentUser.Name)
                         {
-                            Author = new Author { Name = "Bot" },
-                            DateTime = DateTime.Now,
-                            Text = answer
-                        });
-                        Suggestion.Clear();
-                        string suggestions = await microsoftAIExtension.GetAnswerFromGPT("You are a helpful assistant. Your task is to analyze the answer and ask 3 short one-line suggestion questions that user asks.", answer);
-                        var suggestionList = suggestions.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-                        foreach (var suggestion in suggestionList)
-                        {
-                            Suggestion.Add(suggestion);
+                            string answer = await microsoftAIExtension.GetAnswerFromGPT("You are a helpful assistant. Your task is to analyze the provided question and answer the question based on the pdf", item.Text);
+                            Chats.Add(new TextMessage
+                            {
+                                Author = new Author { Name = "AIAssistant" },
+                                DateTime = DateTime.Now,
+                                Text = answer
+                            });
+                            Suggestion.Clear();
+                           await AddSuggestions(answer);
                         }
+
                     }
 
                 }
-
             }
         }
         #endregion

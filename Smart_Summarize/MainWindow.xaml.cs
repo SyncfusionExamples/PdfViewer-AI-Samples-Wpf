@@ -16,7 +16,7 @@ namespace Smart_Summarize
     {
         #region Fields
         private ToggleButton aIAssistButton;
-        private ViewModel viewModel;
+        private AIAssitViewModel viewModel;
         #endregion
 
         #region Constructor
@@ -25,7 +25,7 @@ namespace Smart_Summarize
             InitializeComponent();
             //Load the PDF document in the PdfViewer
             pdfViewer.Load("../../../Data/GIS Succinctly.pdf");
-            viewModel = new ViewModel(pdfViewer);
+            viewModel = new AIAssitViewModel(pdfViewer);
             DataContext = viewModel;
         }
         #endregion
@@ -73,6 +73,7 @@ namespace Smart_Summarize
                 (toggleButton.Content as System.Windows.Shapes.Path).SetResourceReference(System.Windows.Shapes.Path.FillProperty, "SecondaryForeground");
             }
             aiAssistView.Visibility = Visibility.Collapsed;
+            summarizeGrid.Visibility = Visibility.Collapsed;
             pdfViewer.Focus();
         }
         /// <summary>
@@ -82,6 +83,7 @@ namespace Smart_Summarize
         /// <param name="e">The event data.</param>
         private async void AIAssistButton_Checked(object sender, RoutedEventArgs e)
         {
+            summarizeGrid.Visibility = Visibility.Visible;
             aiAssistView.Visibility = Visibility.Visible;
             if (viewModel.Chats.Count == 0)
             {
@@ -98,7 +100,7 @@ namespace Smart_Summarize
         /// <param name="e">The event data containing the selected suggestion.</param>
         private void chat_SuggestionSelected(object sender, SuggestionClickedEventArgs e)
         {
-            var msgs = aiAssistView.DataContext as ViewModel;
+            var msgs = aiAssistView.DataContext as AIAssitViewModel;
             msgs.Chats.Add(new TextMessage { Text = e.Item.ToString(), DateTime = DateTime.Now, Author = aiAssistView.CurrentUser });
         }
         #region Helper methods
