@@ -2,6 +2,7 @@
 using Syncfusion.Windows.PdfViewer;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Text;
 
 namespace Smart_Summarize
 {
@@ -13,6 +14,7 @@ namespace Smart_Summarize
         private Author currentUser;
         private PdfViewerControl pdfViewer;
         MicrosoftAIExtension microsoftAIExtension;
+        StringBuilder processedText = new StringBuilder();
         public event PropertyChangedEventHandler PropertyChanged;
         #endregion
 
@@ -129,19 +131,43 @@ namespace Smart_Summarize
         /// <summary>
         /// Extracts text from each page of the PDF document.
         /// </summary>
-        private async Task ExtractDetailsFromPDF()
+        private async Task<string> ExtractDetailsFromPDF()
         {
-            List<string> extractedText = new List<string>();
+            StringBuilder extractedText = new StringBuilder();
             Syncfusion.Pdf.TextLines textLines = new Syncfusion.Pdf.TextLines();
             //Extract the text from the PDF document
             for (int pageIndex = 0; pageIndex < pdfViewer.PageCount; pageIndex++)
             {
                 string text = $"... Page {pageIndex + 1} ...\n";
                 text += pdfViewer.ExtractText(pageIndex, out textLines);
-                extractedText.Add(text);
+                extractedText.AppendLine(text);
             }
 
-            await microsoftAIExtension.CreateEmbeddedPage(extractedText.ToArray());
+            return ProcessExtractedText(extractedText.ToString());
+        }
+        /// <summary>
+        /// Processes the extracted full text from a document by splitting it into pages.
+        /// </summary>
+        /// <param name="fullText">The complete extracted text from the document.</param>
+        /// <returns>A formatted string containing the processed text.</returns>
+        private string ProcessExtractedText(string fullText)
+        {
+            string[] pages = fullText.Split(new string[] { "\f", "\n\nPage " }, StringSplitOptions.RemoveEmptyEntries);
+
+            for (int i = 0; i < pages.Length; i++)
+            {
+                processedText.AppendLine($"... Page {i + 1} ...");
+                string[] lines = pages[i].Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                int maxLines = Math.Min(1000, lines.Length);
+
+                for (int j = 0; j < maxLines; j++)
+                {
+                    processedText.AppendLine(lines[j]);
+                }
+                processedText.AppendLine();
+            }
+
+            return processedText.ToString();
         }
         /// <summary>
         /// Summarizes the extracted text from the PDF using Extension AI.
@@ -149,7 +175,7 @@ namespace Smart_Summarize
         private async Task<string> SummarizePDF()
         {
             //Summarize the text using the Semantic Kernel AI
-            string summary = await microsoftAIExtension.GetAnswerFromGPT("You are a helpful assistant. Your task is to analyze the provided text and generate short summary as a plain text.");
+            string summary = await microsoftAIExtension.GetAnswerFromGPT(processedText.ToString());
             return summary;
         }
         /// <summary>
