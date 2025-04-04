@@ -142,7 +142,6 @@ namespace Smart_Summarize
                 text += pdfViewer.ExtractText(pageIndex, out textLines);
                 extractedText.AppendLine(text);
             }
-
             return ProcessExtractedText(extractedText.ToString());
         }
         /// <summary>
@@ -153,7 +152,6 @@ namespace Smart_Summarize
         private string ProcessExtractedText(string fullText)
         {
             string[] pages = fullText.Split(new string[] { "\f", "\n\nPage " }, StringSplitOptions.RemoveEmptyEntries);
-
             for (int i = 0; i < pages.Length; i++)
             {
                 processedText.AppendLine($"... Page {i + 1} ...");
@@ -166,7 +164,6 @@ namespace Smart_Summarize
                 }
                 processedText.AppendLine();
             }
-
             return processedText.ToString();
         }
         /// <summary>
