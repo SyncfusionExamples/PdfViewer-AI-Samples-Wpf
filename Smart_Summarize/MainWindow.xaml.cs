@@ -5,6 +5,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using Syncfusion.Windows.Shared;
 using System.IO;
+using Syncfusion.UI.Xaml.Chat;
 
 namespace Smart_Summarize
 {
@@ -14,11 +15,8 @@ namespace Smart_Summarize
     public partial class MainWindow : Window
     {
         #region Fields
-        private MicrosoftAIExtension microsoftAIExtension;
         private ToggleButton aIAssistButton;
-        private UserChatBox userInputChat;
-        private AIResultChatBox aIResultChat;
-        private ChatTextBlock chatText;
+        private AIAssitViewModel viewModel;
         #endregion
 
         #region Constructor
@@ -27,8 +25,8 @@ namespace Smart_Summarize
             InitializeComponent();
             //Load the PDF document in the PdfViewer
             pdfViewer.Load("../../../Data/GIS Succinctly.pdf");
-            //Initialize the Semantic Kernel AI for summarizing the PDF document
-            microsoftAIExtension = new MicrosoftAIExtension("YOUR-AI-KEY");
+            viewModel = new AIAssitViewModel(pdfViewer);
+            DataContext = viewModel;
         }
         #endregion
 
@@ -45,9 +43,8 @@ namespace Smart_Summarize
             {
                 aIAssistButton.IsChecked = false;
             }
+            aiAssistView.Visibility = Visibility.Collapsed;
 
-            //Clear the chat stack panel when the document is loaded
-            chatStack.Children.Clear();
         }
 
         /// <summary>
@@ -63,35 +60,11 @@ namespace Smart_Summarize
             // Add the AI Assistance button to the toolbar
             AddAIAssistanceButton(toolbar);
         }
-
-        private void inputText_GotFocus(object sender, RoutedEventArgs e)
-        {
-            //Add the default prompt to the input text box
-            if (inputText.Text == "Ask a question about this document...")
-            {
-                inputText.Text = "";
-                SolidColorBrush textForeGround = inputText.Foreground as SolidColorBrush;
-                if (textForeGround != null)
-                {
-                    //Make the text color half transparent for the default prompt
-                    inputText.Foreground = new SolidColorBrush(Color.FromArgb((byte)((int)textForeGround.Color.A * 2), textForeGround.Color.R, textForeGround.Color.G, textForeGround.Color.B));
-                }
-            }
-        }
-
         /// <summary>
-        /// Lost focus event for the input text box
+        /// Handles the Unchecked event of the AIAssistButton.
         /// </summary>
-        /// <param name="sender">Text box</param>
-        /// <param name="e">Event arguments</param>
-        private void inputText_LostFocus(object sender, RoutedEventArgs e)
-        {
-            //If the input text box is empty, add the default prompt to the chat box
-            if (inputText.Text.Length <= 0)
-            {
-                AddDefaultPromptToChatBox();
-            }
-        }
+        /// <param name="sender">The Button that triggered the event.</param>
+        /// <param name="e">The event data.</param>
         private void AIAssistButton_Unchecked(object sender, RoutedEventArgs e)
         {
             ToggleButton toggleButton = sender as ToggleButton;
@@ -99,80 +72,37 @@ namespace Smart_Summarize
             {
                 (toggleButton.Content as System.Windows.Shapes.Path).SetResourceReference(System.Windows.Shapes.Path.FillProperty, "SecondaryForeground");
             }
-            //Collapse the AI Assistance when the button is unchecked
+            aiAssistView.Visibility = Visibility.Collapsed;
             summarizeGrid.Visibility = Visibility.Collapsed;
             pdfViewer.Focus();
         }
-
+        /// <summary>
+        /// Handles the checked event of the AIAssistButton.
+        /// </summary>
+        /// <param name="sender">The Button that triggered the event.</param>
+        /// <param name="e">The event data.</param>
         private async void AIAssistButton_Checked(object sender, RoutedEventArgs e)
         {
-            ToggleButton toggleButton = sender as ToggleButton;
-            if (toggleButton != null)
-            {
-                (toggleButton.Content as System.Windows.Shapes.Path).SetResourceReference(System.Windows.Shapes.Path.FillProperty, "PrimaryForeground");
-            }
-            //Expand the AI Assistance when the button is checked
             summarizeGrid.Visibility = Visibility.Visible;
-            if (inputText.Text != "Ask a question about this document...")
+            aiAssistView.Visibility = Visibility.Visible;
+            if (viewModel.Chats.Count == 0)
             {
-                inputText.Text = string.Empty;
-            }
-            //Add the default prompt to the input text box
-            AddDefaultPromptToChatBox();
-            if (chatStack.Children.Count == 0)
-            {
-                //Add the initial user chat question to the chat stack
-                AddUserChat("Summarize this PDF document");
-
-                //Show the loading indicator for summarizing the PDF
-                loadingCanvas.Visibility = Visibility.Visible;
-                loadingIndicator.Header = "Summarizing the PDF...";
-                loadingIndicator.Visibility = Visibility.Visible;
-
-                //Extract the text from the PDF document
-                await ExtractDetailsFromPDF();
-
-                //Summarize the PDF when the chat stack is empty
-                string summaryText = await SummarizePDF();
-
-                //Display the summarized text in the AI Result TextBlock
-                AddAIChat(summaryText);
-                //Hide the loading indicator once the summarization is completed
-                loadingCanvas.Visibility = Visibility.Collapsed;
-                loadingIndicator.Visibility = Visibility.Collapsed;
+                // Ensure this task runs asynchronously
+                await viewModel.GenerateMessages();
             }
         }
 
-        /// <summary>
-        /// Click event for the send button in the chat box
-        /// </summary>
-        /// <param name="sender">Send button</param>
-        /// <param name="e">Event arguments</param>
-        private async void sendButton_Click(object sender, RoutedEventArgs e)
-        {
-            if(!string.IsNullOrEmpty(inputText.Text))
-            {
-                //Add the user input to the chat stack
-                AddUserChat(inputText.Text);
-                inputText.Text = string.Empty;
-                AddDefaultPromptToChatBox();
-
-                //Show the loading indicator for reviewing the question
-                loadingCanvas.Visibility = Visibility.Visible;
-                loadingIndicator.Header = "Reviewing Question...";
-                loadingIndicator.Visibility = Visibility.Visible;
-
-                //Get the answer from GPT using the semantic kernel for the user input
-                string answer = await microsoftAIExtension.AnswerQuestion(chatText.Text);
-                //Display the answer in the AI Result TextBlock
-                AddAIChat(answer);
-                //Hide the loading indicator once the answer is displayed
-                loadingCanvas.Visibility = Visibility.Collapsed;
-                loadingIndicator.Visibility = Visibility.Collapsed;
-            }
-        }
         #endregion
-
+        /// <summary>
+        /// Handles the event when a suggestion is selected in the chat.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The event data containing the selected suggestion.</param>
+        private void chat_SuggestionSelected(object sender, SuggestionClickedEventArgs e)
+        {
+            var msgs = aiAssistView.DataContext as AIAssitViewModel;
+            msgs.Chats.Add(new TextMessage { Text = e.Item.ToString(), DateTime = DateTime.Now, Author = aiAssistView.CurrentUser });
+        }
         #region Helper methods
         /// <summary>
         /// Add the AI Assistance button to the toolbar.
@@ -199,10 +129,7 @@ namespace Smart_Summarize
             aIAssistButton.Padding = new Thickness(6,0,6,0);
             // Set the style of the AI Assist button
             aIAssistButton.SetResourceReference(ToggleButton.StyleProperty, "WPFToggleButtonStyle");
-            if(textSearchButton != null)
-            {
-                sendButton.Style = textSearchButton.Style;
-            }
+
             // Add AI Assist button to the text search stack of the toolbar
             if (textSeacrchStack.Children != null && textSeacrchStack.Children.Count > 0)
             {
@@ -212,12 +139,15 @@ namespace Smart_Summarize
             {
                 textSeacrchStack.Children.Add(aIAssistButton);
             }
-
-            //Apply the color to the buttons added in the toolbar
-            ApplyColorToButtons(textSearchButton.Foreground, toolbar);
         }
+        #endregion
 
         #region Path Geometry Helper Methods
+        /// <summary>
+        /// Converts a path markup string into a Geometry object.
+        /// </summary>
+        /// <param name="pathMarkup">The path markup string defining the geometry.</param>
+        /// <returns>A Geometry object created from the given path markup.</returns>
         internal Geometry PathMarkupToGeometry(string pathMarkup)
         {
             string xaml =
@@ -230,6 +160,11 @@ namespace Smart_Summarize
             path.Data = null;
             return geometry;
         }
+        /// <summary>
+        /// Generates a Stream from the given string.
+        /// </summary>
+        /// <param name="s">The input string to convert into a stream.</param>
+        /// <returns>A Stream containing the string data.</returns>
         internal static Stream GenerateStreamFromString(string s)
         {
             var stream = new MemoryStream();
@@ -240,147 +175,7 @@ namespace Smart_Summarize
             return stream;
         }
         #endregion
+    } 
 
-        /// <summary>
-        /// Apply the color to the buttons in the toolbar.
-        /// </summary>
-        /// <param name="foregroundBrush">Fore ground color</param>
-        private void ApplyColorToButtons(Brush foregroundBrush, DocumentToolbar toolbar)
-        {
-            // Retrieve the root element of the template
-            var rootElement = VisualTreeHelper.GetChild(toolbar, 0) as FrameworkElement;
-            Brush background = Brushes.Transparent;
-            if (rootElement != null)
-            {
-                // Traverse the visual tree to find the first Border
-                var border = FindVisualChild<Border>(rootElement);
-                if (border != null && border.Name != "Part_AnnotationToolbar")
-                {
-                    background = border.Background;
-                    aI_Title.BorderBrush = border.BorderBrush;
-                    aI_Title.BorderThickness = border.BorderThickness;
-                    seperator.Background = border.BorderBrush;
-                }
-            }
-            //Set the background and foreground for the buttons
-            aI_Title.Background = background;
-            aI_Title.Foreground = foregroundBrush;
-            sendButton.Background = background;
-            sendButton.Foreground = foregroundBrush;
-        }
-
-        /// <summary>
-        /// Add the default prompt to the chat box.
-        /// </summary>
-        private void AddDefaultPromptToChatBox()
-        {
-            SolidColorBrush textForeGround = inputText.Foreground as SolidColorBrush;
-            if (textForeGround != null && string.IsNullOrEmpty(inputText.Text))
-            {
-                //Make the text color half transparent for the default prompt
-                inputText.Foreground = new SolidColorBrush(Color.FromArgb((byte)((int)textForeGround.Color.A / 2), textForeGround.Color.R, textForeGround.Color.G, textForeGround.Color.B));
-            }
-
-            //Add the default prompt to the input text box
-            inputText.Text = "Ask a question about this document...";
-        }
-
-        /// <summary>
-        /// Method to find the visual child of the parent element.
-        /// </summary>
-        /// <typeparam name="T">Type of the child</typeparam>
-        /// <param name="parent">Parent element</param>
-        /// <returns>Returns the specified type of child</returns>
-        private T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
-        {
-            if (parent != null && VisualTreeHelper.GetChildrenCount(parent) > 0)
-            {
-                // Traverse the visual tree to find the first child of the specified type
-                for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
-                {
-                    var child = VisualTreeHelper.GetChild(parent, i);
-                    // Check if the child is of the specified type
-                    if (child is T tChild)
-                    {
-                        return tChild;
-                    }
-
-                    // Recursively search the child elements
-                    var result = FindVisualChild<T>(child);
-                    if (result != null)
-                    {
-                        return result;
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Extract the text details from the PDF document.
-        /// </summary>
-        /// <returns>Returns nothing</returns>
-        private async Task ExtractDetailsFromPDF()
-        {
-            List<string> extractedText = new List<string>();
-            Syncfusion.Pdf.TextLines textLines = new Syncfusion.Pdf.TextLines();
-            //Extract the text from the PDF document
-            for (int pageIndex = 0; pageIndex < pdfViewer.PageCount; pageIndex++)
-            {
-                string text = $"... Page {pageIndex + 1} ...\n";
-                text += pdfViewer.ExtractText(pageIndex, out textLines);
-                extractedText.Add(text);
-            }
-
-            await microsoftAIExtension.CreateEmbeddedPage(extractedText.ToArray());
-        }
-
-        /// <summary>
-        /// Summarize the PDF document with the extracted text using the Semantic Kernel AI.
-        /// </summary>
-        /// <returns>Returns the summarized content as string</returns>
-        private async Task<string> SummarizePDF()
-        {
-            //Summarize the text using the Semantic Kernel AI
-            string summary = await microsoftAIExtension.GetAnswerFromGPT("You are a helpful assistant. Your task is to analyze the provided text and generate short summary as a plain text.");
-            return summary;
-        }
-        #endregion
-
-        #region Chat Creation Methods
-        /// <summary>
-        /// Add the AI chat to the chat stack.
-        /// </summary>
-        /// <param name="text">Text to be added</param>
-        private void AddAIChat(string text)
-        {
-            chatText = new ChatTextBlock();
-            chatText.ApplyStyle();
-            chatText.Text = text;
-            aIResultChat = new AIResultChatBox();
-            aIResultChat.ApplyStyle();
-            aIResultChat.Child = chatText;
-            chatStack.Children.Add(aIResultChat);
-            aIResultChat.BringIntoView();
-        }
-
-        /// <summary>
-        /// Add the user chat to the chat stack.
-        /// </summary>
-        /// <param name="text">Text to be added</param>
-        private void AddUserChat(string text)
-        {
-            chatText = new ChatTextBlock();
-            chatText.ApplyStyle();
-            chatText.Text = text;
-            userInputChat = new UserChatBox();
-            string skinManagerStyle = SfSkinManagerExtension.GetBaseThemeName(this);
-            userInputChat.Applystyle(skinManagerStyle);
-            userInputChat.Child = chatText;
-            chatStack.Children.Add(userInputChat);
-            userInputChat.BringIntoView();
-        }
-        #endregion
-    }
 }
+
