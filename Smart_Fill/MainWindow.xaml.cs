@@ -15,7 +15,7 @@ namespace WPFPdfViewer_SmartFill
     public partial class MainWindow : Window
     {
         #region Fields
-        private SemanticKernelAI semanticKernelOpenAI;
+        private MicrosoftAIExtension microsoftAIExtension;
         Button aIAssistButton;
         DispatcherTimer toolTipTimer; 
         #endregion
@@ -25,7 +25,7 @@ namespace WPFPdfViewer_SmartFill
         {
             InitializeComponent();
             //Initialize the Semantic Kernel AI
-            semanticKernelOpenAI = new SemanticKernelAI("YOUR-AI-KEY");
+            microsoftAIExtension = new MicrosoftAIExtension("YOUR-AI-KEY");
             //Load the PDF document in the PDF Viewer
             pdfViewer.Load("../../../Data/form_document_new.pdf");
             //Zoom the PDF Viewer to 50% to view the entire page
@@ -450,7 +450,7 @@ namespace WPFPdfViewer_SmartFill
                                 $"3. First, determine the best match for the field name. If there isn’t an exact match, use the input data to find a close match. " +
                                 $"remove ```xml and remove ``` if it is there in the code.";
                 // Get the answer from GPT using the semantic kernel AI
-                result = await semanticKernelOpenAI.GetAnswerFromGPT(mergePrompt);
+                result = await microsoftAIExtension.GetAnswerFromGPT(mergePrompt);
             }
 
             return result;

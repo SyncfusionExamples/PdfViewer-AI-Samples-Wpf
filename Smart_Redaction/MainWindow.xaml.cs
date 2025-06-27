@@ -17,7 +17,7 @@ namespace WPFPdfViewerAI_SmartRedaction
         #region Fields
         private bool isAllInformationsSelected = false;
         private Dictionary<int, List<RectangleF>> redactRegions = new Dictionary<int, List<RectangleF>>();
-        private SemanticKernelAI semanticKernelOpenAI;
+        private MicrosoftAIExtension microsoftAIExtension;
         ToggleButton aIAssistButton;
         #endregion
 
@@ -29,7 +29,7 @@ namespace WPFPdfViewerAI_SmartRedaction
             pdfViewer.Load("../../../Data/Confidential_Medical_Record.pdf");
 
             //Create an instance of the SemanticKernelAI class which initializes the OpenAI client
-            semanticKernelOpenAI = new SemanticKernelAI("YOUR-AI-KEY");
+            microsoftAIExtension = new MicrosoftAIExtension("YOUR-AI-KEY");
         }
         #endregion
 
@@ -905,7 +905,7 @@ namespace WPFPdfViewerAI_SmartRedaction
             string prompt = stringBuilder.ToString();
 
             // Call the OpenAI client to extract the selected sensitive information
-            var completion = await semanticKernelOpenAI.GetAnswerFromGPT(prompt, text);
+            var completion = await microsoftAIExtension.GetAnswerFromGPT(prompt, text);
             string result = completion.ToString();
 
             // Process the output to ensure it only contains names
