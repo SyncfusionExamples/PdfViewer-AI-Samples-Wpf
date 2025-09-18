@@ -1,5 +1,6 @@
-﻿using Microsoft.Extensions.AI;
-using Azure.AI.OpenAI;
+﻿using Azure.AI.OpenAI;
+using Microsoft.Extensions.AI;
+using SmartComponents.LocalEmbeddings;
 using System.Text;
 namespace Smart_Summarize
 {
@@ -8,9 +9,10 @@ namespace Smart_Summarize
 
         const string endpoint = "YOUR-AI-ENDPOINT";
         const string deploymentName = "YOUR-DEPLOYMENT-NAME";
-        internal string key = string.Empty;
 
         private IChatClient clientAI;
+
+        public Dictionary<string, EmbeddingF32>? PageEmbeddings { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MicrosoftAIExtension"/> class.
@@ -63,6 +65,34 @@ namespace Smart_Summarize
                 return result.ToString();
             }
             return string.Empty;
+        }
+
+        /// <summary>
+        /// Create the embedded page from the extracted chunks in the PDF
+        /// </summary>
+        /// <param name="chunks">Extracted text from pdfViewer</param>
+        /// <returns></returns>
+        public async Task CreateEmbeddedPage(string[] chunks)
+        {
+            var embedder = new LocalEmbedder();
+            PageEmbeddings = chunks.Select(x => KeyValuePair.Create(x, embedder.Embed(x))).ToDictionary(k => k.Key, v => v.Value);
+        }
+
+
+        public async Task<string> AnswerQuestion(string question)
+        {
+            var embedder = new LocalEmbedder();
+            var questionEmbedding = embedder.Embed(question);
+            var results = LocalEmbedder.FindClosestWithScore(questionEmbedding, PageEmbeddings.Select(x => (x.Key, x.Value)), 5, 0.5f);
+            StringBuilder builder = new StringBuilder();
+            foreach (var result in results)
+            {
+                builder.AppendLine(result.Item);
+            }
+            string message = builder.ToString();
+            var answer = await GetAnswerFromGPT("You are a helpful assistant. Use the provided PDF document pages and pick a precise page to answer the user question. Provide the answer in plain text without any special formatting or Markdown syntax. Pages: " + message, question);
+
+            return answer;
         }
     }
 }

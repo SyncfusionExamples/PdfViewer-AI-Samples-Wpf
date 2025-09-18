@@ -94,26 +94,15 @@ namespace Smart_Summarize
         /// </summary>
         public async Task GenerateMessages()
         {
+            // Execute the following asynchronously
+            await ExtractDetailsFromPDF();
+
             Chats.Add(new TextMessage
             {
                 Author = currentUser,
                 DateTime = DateTime.Now,
                 Text = "Summarizing the PDF document..."
             });
-
-            // Execute the following asynchronously
-            await ExtractDetailsFromPDF();
-
-            string summaryText = await SummarizePDF();
-
-            // Update chats on the UI thread
-            Chats.Add(new TextMessage
-            {
-                Author = new Author { Name = "AIAssistant" },
-                DateTime = DateTime.Now,
-                Text = summaryText
-            });
-            await AddSuggestions(summaryText);
         }
         /// <summary>
         /// Generate suggestion from the answers
@@ -133,48 +122,20 @@ namespace Smart_Summarize
         /// </summary>
         private async Task<string> ExtractDetailsFromPDF()
         {
-            StringBuilder extractedText = new StringBuilder();
+            List<string> extractedText = new List<string>();
             Syncfusion.Pdf.TextLines textLines = new Syncfusion.Pdf.TextLines();
             //Extract the text from the PDF document
             for (int pageIndex = 0; pageIndex < pdfViewer.PageCount; pageIndex++)
             {
                 string text = $"... Page {pageIndex + 1} ...\n";
                 text += pdfViewer.ExtractText(pageIndex, out textLines);
-                extractedText.AppendLine(text);
+                extractedText.Add(text);
             }
-            return ProcessExtractedText(extractedText.ToString());
-        }
-        /// <summary>
-        /// Processes the extracted full text from a document by splitting it into pages.
-        /// </summary>
-        /// <param name="fullText">The complete extracted text from the document.</param>
-        /// <returns>A formatted string containing the processed text.</returns>
-        private string ProcessExtractedText(string fullText)
-        {
-            string[] pages = fullText.Split(new string[] { "\f", "\n\nPage " }, StringSplitOptions.RemoveEmptyEntries);
-            for (int i = 0; i < pages.Length; i++)
-            {
-                processedText.AppendLine($"... Page {i + 1} ...");
-                string[] lines = pages[i].Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                int maxLines = Math.Min(1000, lines.Length);
+            microsoftAIExtension.CreateEmbeddedPage(extractedText.ToArray());
 
-                for (int j = 0; j < maxLines; j++)
-                {
-                    processedText.AppendLine(lines[j]);
-                }
-                processedText.AppendLine();
-            }
-            return processedText.ToString();
+            return extractedText.ToString();
         }
-        /// <summary>
-        /// Summarizes the extracted text from the PDF using Extension AI.
-        /// </summary>
-        private async Task<string> SummarizePDF()
-        {
-            //Summarize the text using the Semantic Kernel AI
-            string summary = await microsoftAIExtension.GetAnswerFromGPT(processedText.ToString());
-            return summary;
-        }
+       
         /// <summary>
         /// Handles the event when the chat collection changes.  
         /// </summary>
@@ -187,23 +148,18 @@ namespace Smart_Summarize
                 var item = e.NewItems[0] as ITextMessage;
                 if (item != null)
                 {
-                    if (item.Text != "Summarizing the PDF document...")
+                    if (item.Author.Name == currentUser.Name)
                     {
-                        if (item.Author.Name == currentUser.Name)
+                        string answer = await microsoftAIExtension.AnswerQuestion(item.Text);
+                        Chats.Add(new TextMessage
                         {
-                            string answer = await microsoftAIExtension.GetAnswerFromGPT("You are a helpful assistant. Your task is to analyze the provided question and answer the question based on the pdf", item.Text);
-                            Chats.Add(new TextMessage
-                            {
-                                Author = new Author { Name = "AIAssistant" },
-                                DateTime = DateTime.Now,
-                                Text = answer
-                            });
-                            Suggestion.Clear();
-                           await AddSuggestions(answer);
-                        }
-
+                            Author = new Author { Name = "AIAssistant" },
+                            DateTime = DateTime.Now,
+                            Text = answer
+                        });
+                        Suggestion.Clear();
+                        await AddSuggestions(answer);
                     }
-
                 }
             }
         }
