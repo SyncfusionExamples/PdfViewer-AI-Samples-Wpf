@@ -4,41 +4,41 @@ This repository contains AI-powered samples demonstrating advanced capabilities 
 ##Key AI-Powered Features in PDF Viewer
 The Syncfusion® AI-Powered PDF Viewer incorporates three powerful AI-driven features:
 
-*Smart Summarizer
-*Smart Redaction
-*Smart Fill
+* Smart Summarizer
+* Smart Redaction
+* Smart Fill
 
 ###Smart Summarizer
 This feature leverages advanced AI to deliver intelligent document analysis and deeper content understanding. Highlights include:
 
-*Easy Understanding: Automatically analyzes PDF content and helps users grasp key points quickly without reading the entire document.
-*Interactive Q&A: Allows users to ask custom questions or choose from AI-suggested queries for deeper insights.
-*Ideal for Complex Documents: Perfect for legal contracts, research papers, business reports, and other lengthy or technical PDFs.
+* Easy Understanding: Automatically analyzes PDF content and helps users grasp key points quickly without reading the entire document.
+* Interactive Q&A: Allows users to ask custom questions or choose from AI-suggested queries for deeper insights.
+* Ideal for Complex Documents: Perfect for legal contracts, research papers, business reports, and other lengthy or technical PDFs.
 
 ###Smart Redaction
 The AI-Powered PDF Viewer includes an AI-powered redaction system that intelligently identifies and safeguards sensitive information. Key capabilities:
 
-*PII Data Detection: Automatically identifies Personally Identifiable Information such as Social Security Numbers, email addresses, and phone numbers.
-*Customizable Redaction Patterns: Supports domain-specific data recognition for medical records, financial details and other industry-specific compliance needs.
-*Consistent Redaction: Ensures secure and uniform redaction across all documents to maintain privacy and regulatory standards.
+* PII Data Detection: Automatically identifies Personally Identifiable Information such as Social Security Numbers, email addresses, and phone numbers.
+* Customizable Redaction Patterns: Supports domain-specific data recognition for medical records, financial details and other industry-specific compliance needs.
+* Consistent Redaction: Ensures secure and uniform redaction across all documents to maintain privacy and regulatory standards.
 
 ###Smart Fill
 This feature streamlines data entry using AI. Key benefits:
 
-*Clipboard Data Extraction: Automatically extracts relevant information from clipboard content copied from any document or structured data source.
-*Intelligent Field Mapping: Accurately assigns extracted data to the appropriate form fields using AI.
-*Efficient Data Entry: Reduces manual input while improving accuracy and overall form-filling speed.
+* Clipboard Data Extraction: Automatically extracts relevant information from clipboard content copied from any document or structured data source.
+* Intelligent Field Mapping: Accurately assigns extracted data to the appropriate form fields using AI.
+* Efficient Data Entry: Reduces manual input while improving accuracy and overall form-filling speed.
 
 ## Requirements to run the Samples
-*Operating System: Windows 11 or Windows 10 (version 1809, build 17763 or later).
-*Development Environment: Visual Studio 2022 or later.
+* Operating System: Windows 11 or Windows 10 (version 1809, build 17763 or later).
+* Development Environment: Visual Studio 2022 or later.
 
 ## How to run the Samples
-*Clone the repository to your local machine.
-*Open the desired sample solution (.sln) file in Visual Studio.
-*Restore the required NuGet packages automatically through Visual Studio.
-*Add your AI credentials (Key, Model Name, and Endpoint) in the appropriate configuration section of the sample.
-*Build and run the selected sample project to explore its functionality.
+* Clone the repository to your local machine.
+* Open the desired sample solution (.sln) file in Visual Studio.
+* Restore the required NuGet packages automatically through Visual Studio.
+* Add your AI credentials (Key, Model Name, and Endpoint) in the appropriate configuration section of the sample.
+* Build and run the selected sample project to explore its functionality.
 
 ## Related links
 
