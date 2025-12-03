@@ -20,7 +20,7 @@ namespace Smart_Summarize
         /// <param name="key">Key for the semantic kernal API</param>
         public MicrosoftAIExtension(string key)
         {
-            clientAI = new AzureOpenAIClient(new System.Uri(endpoint), new System.ClientModel.ApiKeyCredential(key)).AsChatClient(deploymentName);
+            clientAI = new AzureOpenAIClient(new System.Uri(endpoint), new System.ClientModel.ApiKeyCredential(key)).GetChatClient(deploymentName).AsIChatClient();
         }
 
         /// <summary>
